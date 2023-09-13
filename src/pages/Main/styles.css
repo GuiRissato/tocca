@@ -1,0 +1,18 @@
+/* src/components/UserListPage.css */
+.user-list-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 100px;
+  }
+  
+  .user-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .user-list li {
+    margin: 5px 0;
+    font-size: 18px;
+  }
+  

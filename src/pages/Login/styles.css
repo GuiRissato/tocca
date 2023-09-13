@@ -1,0 +1,50 @@
+/* src/components/LoginPage.css */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 100px;
+  }
+  
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .login-form label {
+    font-weight: bold;
+  }
+  
+  .login-form input {
+    width: 200px;
+    padding: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .login-form button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .login-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  .register-button {
+    background-color: transparent;
+    border: none;
+    text-decoration: underline;
+    color: #007bff;
+    cursor: pointer;
+  }
+  
+  .register-button:hover {
+    color: #0056b3;
+  }
+  
