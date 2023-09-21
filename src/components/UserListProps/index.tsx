@@ -1,8 +1,8 @@
-// src/components/UserList.tsx
-import React, { useEffect } from 'react';
+import React from 'react';
 
 interface UserListProps {
-  users: UserData[]; // Array de objetos de usuário
+  users: UserData[];
+  onEditUserClick: (user: UserData) => void;
 }
 
 interface UserData {
@@ -12,11 +12,7 @@ interface UserData {
   age: number;
 }
 
-const UserList: React.FC<UserListProps> = ({ users }) => {
-
-    useEffect(()=>{
-        console.log('users',users)
-    },[])
+const UserList: React.FC<UserListProps> = ({ users, onEditUserClick }) => {
   return (
     <div>
       <h2>Lista de Usuários</h2>
@@ -26,6 +22,7 @@ const UserList: React.FC<UserListProps> = ({ users }) => {
             <strong>Nome de Usuário:</strong> {user.user_name}<br />
             <strong>Nome:</strong> {user.name}<br />
             <strong>Idade:</strong> {user.age}<br />
+            <button onClick={() => onEditUserClick(user)}>Editar</button>
           </li>
         ))}
       </ul>
