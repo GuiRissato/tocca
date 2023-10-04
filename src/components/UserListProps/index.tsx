@@ -3,6 +3,7 @@ import React from 'react';
 interface UserListProps {
   users: UserData[];
   onEditUserClick: (user: UserData) => void;
+  onDeleteUserClick: (user: UserData) => void;
 }
 
 interface UserData {
@@ -12,7 +13,7 @@ interface UserData {
   age: number;
 }
 
-const UserList: React.FC<UserListProps> = ({ users, onEditUserClick }) => {
+const UserList: React.FC<UserListProps> = ({ users, onEditUserClick, onDeleteUserClick }) => {
   return (
     <div>
       <h2>Lista de Usuários</h2>
@@ -23,6 +24,7 @@ const UserList: React.FC<UserListProps> = ({ users, onEditUserClick }) => {
             <strong>Nome:</strong> {user.name}<br />
             <strong>Idade:</strong> {user.age}<br />
             <button onClick={() => onEditUserClick(user)}>Editar</button>
+            <button onClick={() => onDeleteUserClick(user)}>Excluir</button>
           </li>
         ))}
       </ul>
