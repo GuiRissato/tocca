@@ -9,12 +9,14 @@ interface UserRegistrationModalProps {
   onClose: () => void;
 }
 
+
+
 const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ isOpen, onClose }) => {
   const [userData, setUserData] = useState({
-    user_name: '',
+    username: '',
     password: '',
     name: '',
-    age: 0,
+    email: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,8 +57,8 @@ const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ isOpen, o
     >
       <div className="modal-header">Cadastro de Usuário</div>
       <form className="modal-form">
-        <label htmlFor="user_name">Nome de Usuário:</label>
-        <input type="text" id="user_name" name="user_name" value={userData.user_name} onChange={handleInputChange} />
+        <label htmlFor="username">Nome de Usuário:</label>
+        <input type="text" id="username" name="username" value={userData.username} onChange={handleInputChange} />
 
         <label htmlFor="password">Senha:</label>
         <input type="password" id="password" name="password" value={userData.password} onChange={handleInputChange} />
@@ -64,8 +66,8 @@ const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ isOpen, o
         <label htmlFor="name">Nome:</label>
         <input type="text" id="name" name="name" value={userData.name} onChange={handleInputChange} />
 
-        <label htmlFor="age">Idade:</label>
-        <input type="number" id="age" name="age" value={userData.age} onChange={handleInputChange} />
+        <label htmlFor="age">e-mail:</label>
+        <input type="email" id="email" name="email" value={userData.email} onChange={handleInputChange} />
 
         <button type="button" onClick={handleRegister}>
           Cadastrar

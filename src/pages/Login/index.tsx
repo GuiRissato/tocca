@@ -26,7 +26,7 @@ const Login: React.FC = () =>{
     try {
       // Enviar dados para a API
       await api.post('/login', {
-        user_name: username,
+        username: username,
         password: password,
       }).then((res) => {
         if (res.status === 200) {
@@ -56,7 +56,7 @@ const Login: React.FC = () =>{
 
   return (
     <div className="login-container">
-      <h1>Login</h1>
+      <h1>Login Tocca</h1>
       <form className="login-form">
       <label htmlFor="username">Usuário:</label>
         <input type="text" id="username" value={username} onChange={handleUsernameChange} />
