@@ -14,7 +14,7 @@ const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ isOpen, o
     user_name: '',
     password: '',
     name: '',
-    age: 0,
+    email: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,8 +64,8 @@ const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ isOpen, o
         <label htmlFor="name">Nome:</label>
         <input type="text" id="name" name="name" value={userData.name} onChange={handleInputChange} />
 
-        <label htmlFor="age">Idade:</label>
-        <input type="number" id="age" name="age" value={userData.age} onChange={handleInputChange} />
+        <label htmlFor="age">email:</label>
+        <input type="number" id="age" name="age" value={userData.email} onChange={handleInputChange} />
 
         <button type="button" onClick={handleRegister}>
           Cadastrar

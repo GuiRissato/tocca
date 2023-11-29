@@ -1,0 +1,25 @@
+.container {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+  }
+  
+  .board {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+  }
+  
+  .column {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 0 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .column h2 {
+    margin-bottom: 10px;
+    text-align: center;
+  }

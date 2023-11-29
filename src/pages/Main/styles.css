@@ -1,18 +1,66 @@
-/* src/components/UserListPage.css */
-.user-list-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 100px;
-  }
+.container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+  flex-direction: column;
+ }
+ 
+ .content {
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  box-sizing: border-box;
+ }
+ 
+ .cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
+ }
+ 
+ .create-project-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #007bff;
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  width: 100%;
+  height: 100px;
+  box-sizing: border-box;
+ }
+ 
+ .plus-symbol {
+  font-size: 3rem;
+ }
+ 
+ .project-card {
+  display: flex;
+  background-color: rgb(242, 241, 241);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  height: 150px;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  flex-direction: column;
+  margin-top: 2rem;
+  margin-inline-end: 1rem;
   
-  .user-list {
-    list-style: none;
-    padding: 0;
-  }
   
-  .user-list li {
-    margin: 5px 0;
-    font-size: 18px;
-  }
-  
+ }
+
+ .new-project{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start ;
+  align-items: center;
+  width: 100%;
+    
+ }

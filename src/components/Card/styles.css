@@ -1,0 +1,17 @@
+.card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .card:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .card.dragging {
+    opacity: 0.5;
+  }

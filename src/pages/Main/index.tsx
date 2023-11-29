@@ -1,86 +1,65 @@
-// src/components/MainPage.tsx
-import React, { useEffect, useState } from 'react';
-import UserList from '../../components/UserListProps'; 
-import UserUpdateModal from '../../components/UserUpdateModal'; 
-import UserDeleteConfirmationModal from '../../components/UserDeleteModal';
-import api from '../../interface/API';
+import React, { useState } from 'react';
+import './styles.css';
+import CreateProjectModal from '../../components/CreateProjectModal';
+import trash from '../../assets/images/trash.svg'
+import { Link } from 'react-router-dom';
 
-interface UserData {
+interface Project {
   id: number;
-  user_name: string;
   name: string;
-  age: number;
+  description: string;
 }
 
-const Main: React.FC = () => {
-  const [users, setUsers] = useState<UserData[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
+const CreateProjectButton: React.FC = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
 
-  async function fetchUsers() {
-    try {
-      const response = await api.get('/users');
-      if (response.status === 200) {
-        const data = response.data;
-        setUsers(data);
-      } else {
-        console.error('Erro ao obter a lista de usuários');
-      }
-    } catch (error) {
-      console.error('Erro ao obter a lista de usuários', error);
-    }
+  const toggleModal = () => {
+    setShowModal(!showModal);
+  };
+
+  const handleCreateProject = (newProject: Project) => {
+    // Criar um ID único para o novo projeto (exemplo simples)
+    newProject.id = Math.floor(Math.random() * 1000) + 1;
+
+    // Atualizar o estado com o novo projeto
+    setProjects([...projects, newProject]);
+
+    // Fechar a modal
+    setShowModal(false);
+  };
+
+  const handleDeleteProject = () =>{
+
   }
 
-  useEffect(() => {
-    fetchUsers();
-  }, [selectedUser,users]);
-
-  const handleEditUserClick = (user: any) => {
-    setSelectedUser({...user, password: ''});
-    setIsUpdateModalOpen(true);
-  };
-
-  const handleDeleteUserClick = (user: UserData) => {
-    setSelectedUser(user);
-    setIsDeleteConfirmationModalOpen(true);
-  };
-
-  const handleConfirmDeleteUser = async () => {
-    await api.delete(`/destroy/${selectedUser.id}`)
-    setIsDeleteConfirmationModalOpen(false);
-  };
-
   return (
-    <>
-      <h1>Lista de Usuários</h1>
-      {users.length === 0 ? (
-        <div>Carregando...</div>
-      ) : (
-        <UserList users={users} 
-        onEditUserClick={handleEditUserClick} 
-        onDeleteUserClick={handleDeleteUserClick}
-        />
-      )}
-
-      {selectedUser && (
-        <UserUpdateModal
-          isOpen={isUpdateModalOpen}
-          onClose={() => setIsUpdateModalOpen(false)}
-          user={selectedUser}
-        />
-      )}
-
-      {selectedUser && (
-        <UserDeleteConfirmationModal
-          isOpen={isDeleteConfirmationModalOpen}
-          onClose={() => setIsDeleteConfirmationModalOpen(false)}
-          onDelete={handleConfirmDeleteUser}
-          user={selectedUser}
-        />
-      )}
-    </>
+<div className="container">
+      <h1>Tocca</h1>
+      <div className="content">
+        <div className='cards-container'>
+          <div className="create-project-button" onClick={toggleModal}>
+            <span className="plus-symbol">+</span>
+            <p>Criar Projeto</p>
+          </div>
+            <div className='new-project'>
+              {projects.map(project => (
+                <Link style={{textDecoration:'none', color: 'inherit'}} key={project.id} to={`/projects/${project.id}/kanban`}>
+                  <div className="project-card" key={project.id}>
+                    <h3>{project.name}</h3>
+                    <p>{project.description}</p>
+                    <div style={{ display:'flex', justifyContent:'flex-end', width:'100%'}}>
+                      <img src={trash} alt='deletar' onClick={()=>handleDeleteProject()} style={{cursor:'pointer'}}/>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+        </div>
+        {showModal && <CreateProjectModal onClose={toggleModal} onCreateProject={handleCreateProject} />}
+      </div>
+    </div>
   );
 };
 
-export default Main;
+export default CreateProjectButton;
