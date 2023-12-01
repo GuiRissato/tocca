@@ -1,6 +1,7 @@
 import React, {useState,useEffect} from 'react'
 import { useNavigate } from 'react-router-dom';
 import UserRegistrationModal from '../../components/UserRegistrationModal';
+import Cookies from 'js-cookie';
 
 import './styles.css';
 import api from '../../interface/API';
@@ -19,7 +20,6 @@ const Login: React.FC = () =>{
     setPassword(e.target.value);
   };
   
-
   const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Previne a recarga da página
   
@@ -28,8 +28,9 @@ const Login: React.FC = () =>{
       await api.post('/login', {
         user_name: username,
         password: password,
-      }).then((res) => {
+      }).then((res:any) => {
         if (res.status === 200) {
+          Cookies.set('user-cookie',res.data.userFormatted.id)
           navigate('/main');
         } else {
           // Tratar erros de autenticação

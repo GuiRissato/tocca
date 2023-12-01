@@ -1,7 +1,10 @@
-.container {
+.container-kanban {
     display: flex;
-    justify-content: space-between;
-    margin: 20px 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width:100%
+   
   }
   
   .board {
@@ -17,6 +20,8 @@
     padding: 10px;
     margin: 0 10px;
     background-color: #f9f9f9;
+    align-items: center;
+    text-align: center;
   }
   
   .column h2 {

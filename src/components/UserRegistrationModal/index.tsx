@@ -28,7 +28,7 @@ const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ isOpen, o
   const handleRegister = async () => {
     try {
       // Faça a solicitação para registrar o usuário na sua API aqui
-     const response = await api.post('/createUser',userData)
+     const response = await api.post('/users',userData)
 
       if (response.status === 201) {
         // Registro bem-sucedido, pode tratar de acordo com sua necessidade
@@ -65,7 +65,7 @@ const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ isOpen, o
         <input type="text" id="name" name="name" value={userData.name} onChange={handleInputChange} />
 
         <label htmlFor="age">email:</label>
-        <input type="number" id="age" name="age" value={userData.email} onChange={handleInputChange} />
+        <input type="text" id="email" name="email" value={userData.email} onChange={handleInputChange} />
 
         <button type="button" onClick={handleRegister}>
           Cadastrar

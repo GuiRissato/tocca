@@ -2,58 +2,60 @@ import React, { useEffect, useState } from 'react';
 import { useDrop } from 'react-dnd';
 
 import { Card, CardProps } from '../Card';
+import AddCardModal from '../CardCreateModal';
 import './styles.css';
 
+import api from '../../interface/API';
+import { Project } from '../../pages/Main';
+import { BoardData } from '../../pages/Kanban';
+
 interface BoardProps {
-  cards: Array<CardProps>;
+  project: Project;
+  boardData: BoardData | any;
 }
 
 interface GroupedCards {
   [status: string]: Array<CardProps>;
 }
 
-export const Board: React.FC<BoardProps> = ({ cards }) => {
-  const initialBoard: GroupedCards = {
-    todo: [],
-    inprogress: [],
-    done: [],
-  };
+export const Board: React.FC<BoardProps> = ({ project, boardData }) => {
+  const initialBoard: GroupedCards = boardData.columns.reduce((acc: { [x: string]: never[]; }, column: { name: string | number; }) => {
+    acc[column.name] = [];
+    return acc;
+  }, {} as GroupedCards);
 
-  const [groupedCards, setGroupedCards] = useState<GroupedCards>(() => {
-    return cards.reduce((acc, card) => {
-      if (!acc[card.status]) {
-        acc[card.status] = []; 
-      }
-      acc[card.status].push(card);
-      return acc;
-    }, { ...initialBoard });
-  });
-
-  useEffect(()=>{
-    console.log('grouped',groupedCards)
-  },[groupedCards])
+  const [groupedCards, setGroupedCards] = useState<GroupedCards>(initialBoard);
 
   const [, drop] = useDrop(() => ({
     accept: 'card',
-    hover(item: { id: number; status: string }, monitor) {
+    hover(item: CardProps, monitor) {
       const { id, status: draggedStatus } = item;
-      const hoverIndex = monitor.getClientOffset(); // Posição do mouse no momento do hover
+      const hoverIndex = monitor.getClientOffset();
 
       if (hoverIndex) {
         const hoveredColumn = document.elementFromPoint(hoverIndex.x, hoverIndex.y);
 
         if (hoveredColumn) {
-          const hoverStatus = hoveredColumn.getAttribute('data-status');
+          const hoverColumnId = Number(hoveredColumn.getAttribute('data-id'));
 
-          if (hoverStatus !== null && draggedStatus !== hoverStatus) {
+          if (Number(draggedStatus) !== hoverColumnId) {
             const updatedCards = { ...groupedCards };
-            const draggedCardIndex = updatedCards[draggedStatus].findIndex((card) => card.id === id);
-            const draggedCard = updatedCards[draggedStatus][draggedCardIndex];
+            const draggedCardIndex =
+              updatedCards[draggedStatus].findIndex((card: any) => card.id === id) ||
+              updatedCards[draggedStatus].findIndex((card: any) => card.id === +id);
 
-            if (draggedCard) {
-              updatedCards[draggedStatus].splice(draggedCardIndex, 1);
-              updatedCards[hoverStatus] = updatedCards[hoverStatus] || [];
-              updatedCards[hoverStatus].push({ ...draggedCard, status: hoverStatus });
+            if (draggedCardIndex !== -1) {
+              const draggedCard: any = updatedCards[draggedStatus][draggedCardIndex];
+              draggedCard.column_id = hoverColumnId;
+
+              updatedCards[draggedStatus] = updatedCards[draggedStatus].filter((card: any) => card.id !== id && card.id !== +id);
+
+              if (!updatedCards[hoverColumnId]) {
+                updatedCards[hoverColumnId] = [];
+              }
+
+              updatedCards[hoverColumnId].push({ ...draggedCard, status: hoverColumnId });
+
               setGroupedCards({ ...updatedCards });
             }
           }
@@ -62,26 +64,74 @@ export const Board: React.FC<BoardProps> = ({ cards }) => {
     },
   }));
 
+  
+
+  async function getCardsByColumn(columnId: number) {
+    try {
+      const response = await api.get(`/boards/${boardData.board.id}/columns/${columnId}/cards`);
+      const columnCards = response.data;
+  
+      setGroupedCards((prevGroupedCards) => ({
+        ...prevGroupedCards,
+        [columnId]: columnCards,
+      }));
+    } catch (error) {
+      console.error('Erro ao buscar cards da coluna:', error);
+    }
+  }
+
+  useEffect(() => {
+    // Para cada coluna na board, chame a função getCardsByColumn para buscar os cards dessa coluna
+    boardData.columns.forEach((column: any) => {
+      getCardsByColumn(column.id);
+    });
+  }, [boardData, project.id]);
+
+  const handleCardAdded = (newCard: any, columnId: number) => {
+    // Adicione o novo card à coluna correta
+    setGroupedCards((prevGroupedCards) => {
+      const updatedCards = { ...prevGroupedCards };
+  
+      // Verifica se a coluna existe, senão cria um array vazio
+      updatedCards[columnId] = updatedCards[columnId] || [];
+  
+      // Adiciona o novo card à coluna correta
+      updatedCards[columnId].push(newCard);
+  
+      return updatedCards;
+    });
+  };
+
   return (
-      <div className="board" ref={drop}>
-        <div className="column" data-status="todo">
-          <h2>Todo</h2>
-          {groupedCards.todo.map((card, index) => (
-            <Card key={card.id} id={card.id} content={card.content} status="todo" index={index}/>
+    <div className='container-kanban' ref={drop}>
+      <h2>{boardData.board.name}</h2>
+      {boardData ? 
+        <div className="board">
+          {boardData.columns.map((column: any, index: number) => (
+            <div className="column" data-status={column.name} data-id={column.id} key={index}>
+              <h3>{column.name}</h3>
+              {index === 0 && ( 
+              <AddCardModal columnId={column.id} onCardAdded={(newCard) => handleCardAdded(newCard, column.id)} />
+            )}
+              
+              {groupedCards[column.id] && (
+              <div>
+                {groupedCards[column.id].map((card: any, index:number) => (
+                  <Card
+                    column_id={card.column_id}
+                    key={card.id}
+                    id={card.id}
+                    content={card.description} 
+                    status={card.column_id} 
+                    title={card.title} index={index}/>
+                ))}
+              </div>
+            )}
+            </div>
           ))}
         </div>
-        <div className="column" data-status="inprogress">
-          <h2>In Progress</h2>
-          {groupedCards.inprogress.map((card, index) => (
-            <Card key={card.id} id={card.id} content={card.content} status="inprogress" index={index} />
-          ))}
-        </div>
-        <div className="column" data-status="done">
-          <h2>Done</h2>
-          {groupedCards.done.map((card, index) => (
-            <Card key={card.id} id={card.id} content={card.content} status="done" index={index} />
-          ))}
-        </div>
-      </div>
+        : <></>}
+      
+    </div>
   );
 };
