@@ -1,24 +1,38 @@
+import HeaderLayout from '@/components/HeaderLayout';
 import '../../app/globals.css'
-import Navbar from "../../components/Navbar";
 import OKRGrid from "../../components/OKRGrid";
+import { useState } from 'react';
 
 export default function OKRPage() {
+
+  const [years, setYears] = useState<number[]>([2023,2024]);
+  const [selectedYear, setSelectedYear] = useState<number>(2023);
+  
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="container mx-auto p-6">
-        <header className="mb-8">
+    <HeaderLayout>
+    <div className="container mx-auto pt-[60px] mt-10 mb-10">
+      <header className="mb-4">
+        <div className="relative w-64">
           <select
-            className="p-2 border rounded shadow-sm"
-            defaultValue="2023"
+            className="block w-full px-4 py-2 text-gray-700 bg-[#F4F4F5] rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
           >
-            <option value="2021">2021</option>
-            <option value="2022">2022</option>
-            <option value="2023">2023</option>
+            {years.length > 0 ? (
+              years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))
+            ) : (
+              <option>Carregando...</option>
+            )}
           </select>
-        </header>
-        <OKRGrid />
-      </div>
+        </div>
+      </header>
+      <OKRGrid selectedYear={selectedYear} />
     </div>
+  </HeaderLayout>
   );
 }

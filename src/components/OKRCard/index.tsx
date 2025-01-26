@@ -2,43 +2,55 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
 interface OKRCardProps {
-    title: string;
-    progress: number;
-  }
+  title: string;
+  progress: number;
+}
 
 export default function OKRCard(props: Readonly<OKRCardProps>) {
-    return (
-            <div className="bg-white p-6 rounded shadow-sm">
-              <h3 className="text-lg font-bold mb-4">{props.title}</h3>
-              <div className="flex justify-between items-center space-x-4">
-                <div className="w-16 h-16">
-                  <p className="text-gray-600">Objetivos</p>
-                  <CircularProgressbar
-                    value={props.progress}
-                    text={`${props.progress}%`}
-                    styles={buildStyles({
-                      textSize: "12px",
-                      pathColor: "#34D399", // Tailwind: green-400
-                      textColor: "#374151", // Tailwind: gray-700
-                      trailColor: "#E5E7EB", // Tailwind: gray-200
-                    })}
-                  />
-                </div>
-                <div className="w-16 h-16">
-                  <p className="text-gray-600">Resultados Chaves</p>
-                  <CircularProgressbar
-                    value={props.progress}
-                    text={`${props.progress}%`}
-                    styles={buildStyles({
-                      textSize: "12px",
-                      pathColor: "#34D399", // Tailwind: green-400
-                      textColor: "#374151", // Tailwind: gray-700
-                      trailColor: "#E5E7EB", // Tailwind: gray-200
-                    })}
-                  />
-                </div>
-              </div>
+  return (
+    <div className="relative bg-[#F4F4F5] rounded-[20px] w-[100%] h-[230px] flex justify-around shadow-lg p-6">
+      <div className="flex flex-col justify-center">
+        <h3 className="text-2xl font-semibold text-gray-800">{props.title}</h3>
+      </div>
+
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <p className="text-black-500 text-lg font-medium">Progresso</p>
+        <div className="flex space-x-8">
+          <div className="flex flex-col items-center">
+            <p className="text-gray-600 font-medium text-sm mb-2">Objetivos</p>
+            <div className="w-[120px] h-[120px]">
+              <CircularProgressbar
+                value={props.progress}
+                text={`${props.progress}%`}
+                styles={buildStyles({
+                  textSize: "14px",
+                  pathColor: "#10B981",
+                  textColor: "#1F2937",
+                  trailColor: "#D1D5DB",
+                })}
+              />
             </div>
-    );
-  }
-  
+          </div>
+
+          <div className="flex flex-col items-center">
+            <p className="text-gray-600 font-medium text-sm mb-2">
+              Resultados Chaves
+            </p>
+            <div className="w-[120px] h-[120px]">
+              <CircularProgressbar
+                value={props.progress}
+                text={`${props.progress}%`}
+                styles={buildStyles({
+                  textSize: "14px",
+                  pathColor: "#10B981",
+                  textColor: "#1F2937",
+                  trailColor: "#D1D5DB",
+                })}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
