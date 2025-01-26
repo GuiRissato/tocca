@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import "../../app/globals.css";
+import SelectYearButton from "@/components/SelectYearButton";
 
 export default function ReportPage() {
+
+  const [selectedYear, setSelectedYear] = useState<number>(2024);
+
   return (
     <HeaderLayout>
       {/*
@@ -31,16 +35,7 @@ export default function ReportPage() {
           </div>
 
           {/* Seletor de ano (select dropdown) */}
-          <select
-            className="bg-[#D8D8D8] px-4 py-2 rounded-md shadow
-                       hover:bg-gray-300 transition focus:outline-none"
-          >
-            <option value="">Selecione o ano</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-            <option value="2021">2021</option>
-          </select>
+          <SelectYearButton years={[2023,2024]} setSelectedYear={setSelectedYear} selectedYear={selectedYear} />
         </div>
 
         {/*
@@ -48,16 +43,16 @@ export default function ReportPage() {
           flex-1 = ocupa todo o espaço vertical restante
           justify-center e items-center = centralizam os cards no meio
         */}
-        <div className="flex flex-1 justify-center items-center gap-8 h-[calc(100vh-300px)]">
-          <button className="bg-gray-300 text-center px-6 py-4 rounded-xl w-64 hover:bg-gray-400 transition">
+        <div className="flex flex-1 justify-center items-center gap-8 h-[calc(100vh-300px)] ">
+          <button className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
             <h2 className="font-semibold text-lg mb-2">Progresso do OKR</h2>
           </button>
 
-          <button className="bg-gray-300 text-center px-6 py-4 rounded-xl w-64 hover:bg-gray-400 transition">
+          <button className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
             <h2 className="font-semibold text-lg mb-2">Desempenho das Tarefas</h2>
           </button>
 
-          <button className="bg-gray-300 text-center px-6 py-4 rounded-xl w-64 hover:bg-gray-400 transition">
+          <button className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
             <h2 className="font-semibold text-lg mb-2">Prazos e Datas Importantes</h2>
           </button>
         </div>

@@ -23,7 +23,7 @@ export default function OKRGrid({ selectedYear }: Readonly<{ selectedYear: numbe
       ))}
       <div
         onClick={handleAddNewOKR}
-        className="w-[466px] h-[76px] bg-[#D8D8D8] rounded-[50px] shadow-md 
+        className="w-[466px] h-[76px] bg-[#E4E3E3] rounded-[50px] shadow-md 
                    flex items-center justify-center cursor-pointer
                    transition duration-200 ease-in-out ml-[20%] mt-[10%]"
       >

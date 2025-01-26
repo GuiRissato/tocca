@@ -1,26 +1,68 @@
-import ResultCard from "../ResultCard";
-import AddButton from "../AddButton";
+type objective = {
+  id: number;
+    title: string;
+    description: string;
+    results: string[];
+  };
 
 interface ObjectiveCardProps {
-  objective: string;
-  results: string[];
+  objective: objective;
+  setObjective:  React.Dispatch<React.SetStateAction<objective[]>>;
 }
 export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
+
+  function handleAddKeyResult() {
+    const novoResultado = prompt("Digite o novo Resultado Chave:");
+    if (!novoResultado || novoResultado.trim() === "") return;
+  
+    props.setObjective((prevObjectives: objective[]) =>
+      prevObjectives.map((obj: objective) =>
+        obj.id === props.objective.id
+          ? {
+              ...obj,
+              results: [...obj.results, novoResultado],
+            }
+          : obj
+      )
+    );
+  }
+
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow-sm w-64">
-      <h3 className="text-xl font-semibold mb-2">{props.objective}</h3>
-      <p className="text-gray-500 text-sm mb-4">Description</p>
-      <div>
-        <h4 className="text-gray-700 font-medium mb-2">Key Results</h4>
-        <div className="space-y-2">
-          {props.results.map((result, index) => (
-            <ResultCard key={index} result={result} />
-          ))}
-        </div>
-        <AddButton label="Add Key Result" onClick={function (): void {
-          throw new Error("Function not implemented.");
-        } } />
+    <div
+      key={props.objective.id}
+      className="bg-gray-100 rounded-lg shadow-md w-[300px] h-[calc(100vh-210px)] p-4 flex flex-col flex-shrink-0"
+    >
+      <div className="text-lg font-semibold text-gray-700 mb-5">
+        {props.objective.title}
       </div>
+
+      <p className="text-sm text-gray-500 mb-4">{props.objective.description}</p>
+
+      <div className="mt-[80%]">
+        <p className="text-gray-600 font-medium mb-2">
+          Resultados Chaves
+        </p>
+        <ul className="space-y-2 mb-2">
+          {props.objective.results.map((result, resultIndex) => (
+            <li
+              key={resultIndex}
+              className="bg-blue-100 text-blue-600 p-2 rounded-lg flex justify-between items-center shadow-sm"
+            >
+              <span>{result}</span>
+              <button className="text-gray-500 hover:text-gray-700">
+                ...
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <button
+        onClick={handleAddKeyResult}
+        className="space-y-2 w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg"
+      >
+        + Criar Resultados Chaves
+      </button>
     </div>
   );
 }
