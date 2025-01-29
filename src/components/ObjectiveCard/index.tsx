@@ -1,3 +1,8 @@
+import { useState } from "react";
+import CreateKeyResultModal from "../Modal/KeyResult/create";
+import { Objective } from "@/pages/okr/objective/[projectId]";
+import EditKeyResultModal from "../Modal/KeyResult/edit";
+
 type objective = {
   id: number;
     title: string;
@@ -11,20 +16,29 @@ interface ObjectiveCardProps {
 }
 export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
 
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+
   function handleAddKeyResult() {
-    const novoResultado = prompt("Digite o novo Resultado Chave:");
-    if (!novoResultado || novoResultado.trim() === "") return;
+    setOpenModal(true);
+    // const novoResultado = prompt("Digite o novo Resultado Chave:");
+    // if (!novoResultado || novoResultado.trim() === "") return;
   
-    props.setObjective((prevObjectives: objective[]) =>
-      prevObjectives.map((obj: objective) =>
-        obj.id === props.objective.id
-          ? {
-              ...obj,
-              results: [...obj.results, novoResultado],
-            }
-          : obj
-      )
-    );
+    // props.setObjective((prevObjectives: objective[]) =>
+    //   prevObjectives.map((obj: objective) =>
+    //     obj.id === props.objective.id
+    //       ? {
+    //           ...obj,
+    //           results: [...obj.results, novoResultado],
+    //         }
+    //       : obj
+    //   )
+    // );
+  }
+
+  function handleEditKeyResult(result: string) {
+    console.log(result)
+    setOpenEditModal(true)
   }
 
   return (
@@ -49,7 +63,7 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
               className="bg-blue-100 text-blue-600 p-2 rounded-lg flex justify-between items-center shadow-sm"
             >
               <span>{result}</span>
-              <button className="text-gray-500 hover:text-gray-700">
+              <button onClick={()=>{handleEditKeyResult(result)}} className="text-gray-500 hover:text-gray-700">
                 ...
               </button>
             </li>
@@ -63,6 +77,16 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
       >
         + Criar Resultados Chaves
       </button>
+      {openModal && 
+      <CreateKeyResultModal 
+        onClose={setOpenModal} open={openModal} addKeyResult={handleAddKeyResult}
+        />}
+      {
+        openEditModal &&
+        <EditKeyResultModal
+          onClose={setOpenEditModal} open={openEditModal} editKeyResult={()=>{}}
+          />
+      }
     </div>
   );
 }

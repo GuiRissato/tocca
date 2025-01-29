@@ -2,58 +2,159 @@ import React, { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import "../../app/globals.css";
 import SelectYearButton from "@/components/SelectYearButton";
+import { bouncy } from 'ldrs'
 
+bouncy.register()
 export default function ReportPage() {
-
   const [selectedYear, setSelectedYear] = useState<number>(2024);
+  const [selectedOkr, setSelectedOkr] = useState<number | null>(null);
+  const [loadingSection, setLoadingSection] = useState<number | null>(null);
+
+  const handleSectionClick = (sectionIndex: number) => {
+    setLoadingSection(sectionIndex);
+
+    setTimeout(() => {
+      setLoadingSection(null);
+    }, 2000);
+  };
 
   return (
     <HeaderLayout>
-      {/*
-        min-h-screen = faz o container ocupar pelo menos a altura total da tela
-        flex flex-col = organiza em coluna
-        bg-[#F8F5EE] = fundo claro (exemplo), pode trocar se quiser
-      */}
       <div className="container mx-auto pt-[60px] mt-10 mb-10">
-
-        {/* Barra superior (botões OKR e seletor de ano) */}
         <div className="flex items-center justify-between px-8 py-6">
-          {/* Botões OKR */}
+
+          {/* OKR Selection Buttons */}
           <div className="flex space-x-4">
-            <button className="bg-[#D8D8D8] rounded-full px-4 py-2 hover:bg-gray-300 transition">
+            <button
+              onClick={() => setSelectedOkr(1)}
+              className={`
+                rounded-full px-4 py-2 transition 
+                bg-[#D8D8D8] 
+                hover:bg-gray-300
+                text-black
+                ${
+                  selectedOkr === 1
+                    ? "border-2 border-blue-500"
+                    : "border-2 border-transparent"
+                }
+              `}
+            >
               OKR 1º Trimestre
             </button>
-            <button className="bg-[#D8D8D8] rounded-full px-4 py-2 hover:bg-gray-300 transition">
+
+            <button
+              onClick={() => setSelectedOkr(2)}
+              className={`
+                rounded-full px-4 py-2 transition 
+                bg-[#D8D8D8] 
+                hover:bg-gray-300
+                text-black
+                ${
+                  selectedOkr === 2
+                    ? "border-2 border-blue-500"
+                    : "border-2 border-transparent"
+                }
+              `}
+            >
               OKR 2º Trimestre
             </button>
-            <button className="bg-[#D8D8D8] rounded-full px-4 py-2 hover:bg-gray-300 transition">
+
+            <button
+              onClick={() => setSelectedOkr(3)}
+              className={`
+                rounded-full px-4 py-2 transition
+                bg-[#D8D8D8]
+                hover:bg-gray-300
+                text-black
+                ${
+                  selectedOkr === 3
+                    ? "border-2 border-blue-500"
+                    : "border-2 border-transparent"
+                }
+              `}
+            >
               OKR 3º Trimestre
             </button>
-            <button className="bg-[#D8D8D8] rounded-full px-4 py-2 hover:bg-gray-300 transition">
+
+            <button
+              onClick={() => setSelectedOkr(4)}
+              className={`
+                rounded-full px-4 py-2 transition 
+                bg-[#D8D8D8] 
+                hover:bg-gray-300
+                text-black
+                ${
+                  selectedOkr === 4
+                    ? "border-2 border-blue-500"
+                    : "border-2 border-transparent"
+                }
+              `}
+            >
               OKR 4º Trimestre
             </button>
           </div>
 
-          {/* Seletor de ano (select dropdown) */}
-          <SelectYearButton years={[2023,2024]} setSelectedYear={setSelectedYear} selectedYear={selectedYear} />
+
+          {/* Year Selection Button */}
+          <SelectYearButton years={[2023, 2024]} setSelectedYear={setSelectedYear} selectedYear={selectedYear} />
         </div>
 
-        {/*
-          Área principal:
-          flex-1 = ocupa todo o espaço vertical restante
-          justify-center e items-center = centralizam os cards no meio
-        */}
+        {/* Example Buttons for Additional Sections */}
         <div className="flex flex-1 justify-center items-center gap-8 h-[calc(100vh-300px)] ">
-          <button className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
-            <h2 className="font-semibold text-lg mb-2">Progresso do OKR</h2>
+          <button
+            onClick={() => handleSectionClick(1)}
+            className={`
+              ${
+                loadingSection === 1
+                   ? "bg-gray-400 text-white"
+                  : "bg-[#D8D8D8] hover:bg-gray-400 text-black"
+              }
+              text-center px-6 py-4 rounded-xl w-[430px] transition h-[70px]
+            `}
+          >
+            {loadingSection === 1 ? 
+            <l-bouncy
+              size={'45'}
+              speed='1.75'
+              color={'black'}
+            /> : "Progresso do OKR"}
           </button>
 
-          <button className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
-            <h2 className="font-semibold text-lg mb-2">Desempenho das Tarefas</h2>
+          <button
+            onClick={() => handleSectionClick(2)}
+            className={`
+              ${
+                loadingSection === 2
+                  ? "bg-gray-400 text-white"
+                  : "bg-[#D8D8D8] hover:bg-gray-400 text-black"
+              }
+              text-center px-6 py-4 rounded-xl w-[430px] transition h-[70px]
+            `}
+          >
+            {loadingSection === 2 ? 
+             <l-bouncy
+             size={'45'}
+             speed='1.75'
+             color={'black'}
+             /> : "Desempenho das Tarefas"}
           </button>
 
-          <button className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
-            <h2 className="font-semibold text-lg mb-2">Prazos e Datas Importantes</h2>
+          <button
+            onClick={() => handleSectionClick(3)}
+            className={`
+              ${
+                loadingSection === 3
+                  ? "bg-gray-400 text-white"
+                  : "bg-[#D8D8D8] hover:bg-gray-400 text-black"
+              }
+              text-center px-6 py-4 rounded-xl w-[430px] transition h-[70px]
+            `}
+          >
+            {loadingSection === 3 ?  <l-bouncy
+              size={'45'}
+              speed='1.75'
+              color={'black'}
+            /> : "Prazos e Datas Importantes"}
           </button>
         </div>
       </div>

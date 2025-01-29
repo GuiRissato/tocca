@@ -2,6 +2,10 @@ import { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import "../../../app/globals.css";
 import OkrColumns from "@/components/KanBan/Columns";
+import CreateTaskModal from "@/components/Modal/Task/create";
+import EditKeyResultModal from "@/components/Modal/KeyResult/edit";
+import EditTaskModal from "@/components/Modal/Task/edit";
+import DelayedTaskModal from "@/components/Modal/Task/delayReason";
 
 interface Task {
   id: string;
@@ -73,6 +77,9 @@ export default function Kanban() {
   
   const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
   const [insertPosition, setInsertPosition] = useState<"above" | "below" | null>(null);
+  const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
+  const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+  const [openDelayedTask, setOpenDelayedTask] = useState<boolean>(false);
 
   const onDragStart = (task: Task, columnId: string) => {
     setDraggedTask({ task, sourceColumnId: columnId });
@@ -83,6 +90,8 @@ export default function Kanban() {
   };
 
   const handleAddTask = (columnId: string) => {
+    setOpenCreateModal(true)
+
     setKanbanData((prev) => {
       // 1) Achar a coluna
       const colIndex = prev.columns.findIndex((c) => c.id === columnId);
@@ -314,6 +323,9 @@ export default function Kanban() {
             />
           ))}
         </div>
+        {openCreateModal && <CreateTaskModal open={openCreateModal} onClose={setOpenCreateModal}/>}
+        {openEditModal && <EditTaskModal open={openEditModal} onClose={setOpenEditModal}/>}
+        {openDelayedTask && <DelayedTaskModal open={openDelayedTask} onClose={setOpenDelayedTask}/>}
       </div>
     </HeaderLayout>
   );

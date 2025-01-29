@@ -2,12 +2,27 @@ import { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import "../../../app/globals.css";
 import ObjectiveCard from "@/components/ObjectiveCard";
+import ObjectiveModal from "@/components/Modal/Objective/create";
+
+export interface Objective {
+  id: number;
+  title: string;
+  description: string;
+  results: string[];
+}
+
+export interface KeyResult {
+  id: number;
+  key_result_name: string;
+  description: string;
+}
 
 export default function OKRPage() {
   const [years, setYears] = useState<number[]>([2023,2024]);
   const [selectedYear, setSelectedYear] = useState<number>(2023);
+  const [openModal, setOpenModal] = useState(false);
   
-  const [objectives, setObjectives] = useState([
+  const [objectives, setObjectives] = useState<Objective[]>([
     { id: 1, title: "Objetivo 1", description: "Descrição", results: ["Resultado 1", "Resultado 2", "Resultado 3"] },
     { id: 2, title: "Objetivo 2", description: "Descrição", results: ["Resultado 1", "Resultado 2", "Resultado 3"] },
     { id: 3, title: "Objetivo 3", description: "Descrição", results: ["Resultado 1", "Resultado 2", "Resultado 3"] },
@@ -15,11 +30,12 @@ export default function OKRPage() {
   ]);
 
   const addObjective = () => {
-    const newId = objectives.length + 1;
-    setObjectives([
-      ...objectives,
-      { id: newId, title: `Objetivo ${newId}`, description: "Nova Descrição", results: [] },
-    ]);
+    setOpenModal(true);
+    // const newId = objectives.length + 1;
+    // setObjectives([
+    //   ...objectives,
+    //   { id: newId, title: `Objetivo ${newId}`, description: "Nova Descrição", results: [] },
+    // ]);
   };
 
   return (
@@ -42,16 +58,21 @@ export default function OKRPage() {
             ))}
 
             {/* Card para criar novo Objetivo */}
-            <div className="bg-gray-200 rounded-lg shadow-md w-[300px] h-[90%] flex items-center justify-center p-3 flex-shrink-0">
+            <div
+             className="bg-gray-200 rounded-lg shadow-md w-[300px] h-[90%] flex items-center justify-center p-3 flex-shrink-0 cursor-pointer" 
+             onClick={addObjective}
+             >
               <button
-                onClick={addObjective}
+                
                 className="text-gray-600 text-lg font-medium hover:text-gray-800"
               >
                 + Criar Objetivo
               </button>
             </div>
           </div>
+          {openModal && <ObjectiveModal onClose={setOpenModal} open={openModal} addObjective={addObjective} />}
       </div>
+      
     </HeaderLayout>
   );
 }
