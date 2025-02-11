@@ -1,10 +1,17 @@
+import "../../app/globals.css";
 import React, { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
-import "../../app/globals.css";
 import SelectYearButton from "@/components/SelectYearButton";
-import { bouncy } from 'ldrs'
+import OKRProgress from "@/components/Reports/OkrProgress";
 
-bouncy.register()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let bouncy: any;
+if (typeof window !== "undefined") {
+  import('ldrs').then(module => {
+    bouncy = module.bouncy;
+    bouncy.register();
+  });
+}
 export default function ReportPage() {
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [selectedOkr, setSelectedOkr] = useState<number | null>(null);
@@ -101,7 +108,8 @@ export default function ReportPage() {
 
         {/* Example Buttons for Additional Sections */}
         <div className="flex flex-1 justify-center items-center gap-8 h-[calc(100vh-300px)] ">
-          <button
+         <OKRProgress/>
+          {/* <button
             onClick={() => handleSectionClick(1)}
             className={`
               ${
@@ -118,7 +126,7 @@ export default function ReportPage() {
               speed='1.75'
               color={'black'}
             /> : "Progresso do OKR"}
-          </button>
+          </button> */}
 
           <button
             onClick={() => handleSectionClick(2)}
