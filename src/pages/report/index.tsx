@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import SelectYearButton from "@/components/SelectYearButton";
 import OKRProgress from "@/components/Reports/OkrProgress";
+import TaskPerformance from "@/components/Reports/TasksPerfomance";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let bouncy: any;
@@ -128,7 +129,7 @@ export default function ReportPage() {
             /> : "Progresso do OKR"}
           </button> */}
 
-          <button
+          {/* <button
             onClick={() => handleSectionClick(2)}
             className={`
               ${
@@ -145,7 +146,9 @@ export default function ReportPage() {
              speed='1.75'
              color={'black'}
              /> : "Desempenho das Tarefas"}
-          </button>
+          </button> */}
+
+          <TaskPerformance/>
 
           <button
             onClick={() => handleSectionClick(3)}
