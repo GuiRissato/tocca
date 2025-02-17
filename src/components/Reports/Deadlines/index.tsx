@@ -7,179 +7,155 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).addVirtualFileSystem(pdfFonts);
 
 // Interfaces dos dados retornados pela API
-interface ColumnData {
-  columnName: string;
-  percentage: number;
-  color: string;
+interface KeyResult {
+  name: string;
+  dueDate: string;
 }
 
-interface PerformanceByObjective {
+interface Objective {
   objectiveName: string;
-  columns: ColumnData[];
+  completionDate: string;
+  keyResults: KeyResult[];
+  completionPercentage: number;
 }
 
-interface DelayedTasks {
-  totalDelayedTasks: number;
-  delayedTasksByPriority: {
-    high: number;
-    medium: number;
-    low: number;
-  };
-  delayReasons: Array<{ reason: string; count: number }>;
-}
-
-interface TaskPerformanceData {
+interface DeadLines {
   projectId: number;
   projectName: string;
-  performanceByObjective: PerformanceByObjective[];
-  delayedTasks: DelayedTasks;
+  objectives: Objective[];
 }
 
-// Exemplo de estilo para barra de progresso
-const generateProgressBar = (percentage: number, color: string) => {
-  return [
-    {
-      canvas: [
-        {
-          type: 'rect',
-          x: 0,
-          y: 0,
-          w: 200, // Alterar largura conforme necessidade
-          h: 8,
-          color: '#E0E0E0',
-        },
-        {
-          type: 'rect',
-          x: 0,
-          y: 0,
-          w: (percentage / 100) * 200,
-          h: 8,
-          color: color,
-        },
-      ],
-      margin: [0, 0, 0, 4],
-    },
-    {
-      text: `${percentage}%`,
-      margin: [0, 0, 0, 8],
-    },
-  ];
+const generateCircularChart = (percentage: number, radius = 40, color = '#4CAF50', backgroundColor = '#E0E0E0') => {
+  const endAngle = (percentage / 100) * 360;
+  return {
+    stack: [
+      {
+        canvas: [
+          { type: 'ellipse', x: radius, y: radius, r1: radius, r2: radius, lineWidth: 6, lineColor: backgroundColor },
+          { type: 'ellipse', x: radius, y: radius, r1: radius, r2: radius, lineWidth: 6, lineColor: color, startAngle: 0, endAngle: endAngle },
+        ],
+        width: radius * 2,
+        height: radius * 2,
+        margin: [45, 0, 20, 0],
+        alignment: 'right',
+      },
+      {
+        text: `${percentage}%`,
+        alignment: 'center',
+        fontSize: 24,
+        bold: true,
+        margin: [(radius / 2 )-5, -radius -12, 0, 0],
+      },
+    ],
+  };
 };
 
 export default function Deadlines() {
-  // Exemplo de dados fixos, mas em produção você receberá 'data' via requisição
-  const taskPerformanceData: TaskPerformanceData = {
+  const deadLines: DeadLines = {
     projectId: 1,
-    projectName: 'Project 1',
-    performanceByObjective: [
+    projectName: 'Project Alpha',
+    objectives: [
       {
-        objectiveName: 'Objective 1',
-        columns: [
-          { columnName: 'Column A', percentage: 80, color: '#2F80ED' },
-          { columnName: 'Column B', percentage: 50, color: '#F2994A' },
+        objectiveName: 'Increase market share',
+        completionDate: '2024-06-30',
+        keyResults: [
+          { name: 'Expand into new regions', dueDate: '2024-05-15' },
+          { name: 'Increase advertising budget', dueDate: '2024-06-01' },
         ],
+        completionPercentage: 33,
       },
       {
-        objectiveName: 'Objective 2',
-        columns: [
-          { columnName: 'Column A', percentage: 30, color: '#F2C94C' },
-          { columnName: 'Column B', percentage: 60, color: '#81C784' },
-          { columnName: 'Column C', percentage: 90, color: '#E57373' },
+        objectiveName: 'Improve customer satisfaction',
+        completionDate: '2024-10-31',
+        keyResults: [
+          { name: 'Reduce response time', dueDate: '2024-08-15' },
+          { name: 'Enhance support training', dueDate: '2024-09-10' },
         ],
+        completionPercentage: 67,
       },
     ],
-    delayedTasks: {
-      totalDelayedTasks: 2,
-      delayedTasksByPriority: { high: 1, medium: 1, low: 0 },
-      delayReasons: [
-        { reason: 'Bloqueio de recursos', count: 1 },
-        { reason: 'Dependência de terceiros', count: 1 },
-      ],
-    },
   };
 
-  // Exemplo de docDefinition adaptado para o novo formato de dados
-  const generateDocDefinition = (data: TaskPerformanceData): TDocumentDefinitions => {
+  const generateDocDefinition = (data: DeadLines): TDocumentDefinitions => {
     return {
-      pageSize: 'A4',
-      pageMargins: [40, 60, 40, 60],
       content: [
-        {
-          text: 'TOCCA',
-          style: 'header',
-          alignment: 'center',
-          color: '#E65100',
-        },
-        {
-          text: `Relatório de Desempenho de Tarefas - ${data.projectName}`,
-          style: 'subheader',
-          alignment: 'center',
-          margin: [0, 20, 0, 20],
-        },
-        {
-          text: 'Performance por Objetivo',
-          style: 'subheader',
-          margin: [0, 10, 0, 10],
-        },
-        // Mapeia cada objetivo e seus dados
-        ...data.performanceByObjective.flatMap((obj) => {
-          return [
-            { text: obj.objectiveName, bold: true, margin: [0, 10, 0, 5] },
-            ...obj.columns.flatMap((col) => [
-              { text: col.columnName },
-              ...generateProgressBar(col.percentage, col.color),
-            ]),
-          ];
-        }),
-
-        {
-          text: 'Tarefas Atrasadas',
-          style: 'subheader',
-          margin: [0, 20, 0, 10],
-        },
-        {
-          text: `Total de Tarefas Atrasadas: ${data.delayedTasks.totalDelayedTasks}`,
-        },
-        {
-          ul: [
-            `Prioridade Alta: ${data.delayedTasks.delayedTasksByPriority.high}`,
-            `Prioridade Média: ${data.delayedTasks.delayedTasksByPriority.medium}`,
-            `Prioridade Baixa: ${data.delayedTasks.delayedTasksByPriority.low}`,
+        { text: 'TOCCA', style: 'header', alignment: 'center' },
+        { text: `Prazos e datas importantes - ${data.projectName}`, style: 'title', alignment: 'center' },
+        ...data.objectives.map((obj) => ({
+          stack: [
+            {
+              canvas: [
+                { type: 'rect', x: -10, y: 0, w: 530, h: 160, color: '#F0F0F0' },
+              ],
+              margin: [0, 0, 0, -160],
+            },
+            {
+              columns: [
+                { text: obj.objectiveName, style: 'cardTitle' },
+                { text: `Data programada para a conclusão: ${new Date(obj.completionDate).toLocaleDateString('pt-BR')}`, style: 'date' },
+              ],
+              margin: [0, 10, 0, 5],
+            },
+            { text: 'Resultados Chaves', style: 'subTitle', alignment: 'left' },
+            {
+              columns: [
+                {
+                  table: {
+                    headerRows: 1,
+                    widths: ['*', 'auto'],
+                    body: [
+                      [
+                        { text: 'Nome do Resultado', style: 'tableHeader', fillColor: '#F5F5F5', alignment: 'center' },
+                        { text: 'Prazo', style: 'tableHeader', fillColor: '#F5F5F5', alignment: 'center' }
+                      ],
+                      ...obj.keyResults.map((kr) => [
+                        { text: kr.name, margin: [5, 5], alignment: 'left' },
+                        { text: new Date(kr.dueDate).toLocaleDateString('pt-BR'), margin: [5, 5], alignment: 'center' }
+                      ]),
+                    ],
+                  },
+                  layout: {
+                    fillColor: (rowIndex) => (rowIndex % 2 === 0 ? '#FFFFFF' : '#F9F9F9'),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#DDDDDD',
+                    vLineColor: () => '#DDDDDD',
+                  },
+                  margin: [0, 5, 10, 5],
+                },
+                generateCircularChart(obj.completionPercentage),
+              ],
+            },
           ],
-          margin: [0, 5, 0, 5],
-        },
-        {
-          text: 'Motivos de Atraso:',
-          margin: [0, 5, 0, 5],
-          bold: true,
-        },
-        {
-          ul: data.delayedTasks.delayReasons.map(
-            (reasonObj) => `${reasonObj.reason} - ${reasonObj.count} ocorrências`
-          ),
-        },
+          style: 'card',
+          margin: [0, 10],
+        })),
       ],
       styles: {
-        header: {
-          fontSize: 22,
-          bold: true,
-        },
-        subheader: {
-          fontSize: 16,
-          bold: true,
+        header: { fontSize: 22, bold: true, alignment: 'center' },
+        title: { fontSize: 18, bold: true, margin: [0, 10] },
+        cardTitle: { fontSize: 14, bold: true },
+        date: { fontSize: 12, alignment: 'right' },
+        subTitle: { fontSize: 12, bold: true, margin: [0, 10, 0, 5] },
+        tableHeader: { bold: true, fontSize: 12 },
+        card: {
+          margin: [0, 10],
+          padding: 10,
+          border: [false, false, false, false],
+          fillColor: '#FAFAFA',
         },
       },
     };
   };
 
   const gerarPDF = () => {
-    const docDefinition = generateDocDefinition(taskPerformanceData);
-    pdfMake.createPdf(docDefinition).download('relatorio-datas-limites.pdf');
+    const docDefinition = generateDocDefinition(deadLines);
+    pdfMake.createPdf(docDefinition).download('relatorio-datas-importantes.pdf');
   };
 
   return (
     <div>
-      <h2>Relatório de Desempenho</h2>
+      <h2>Relatório de prazos e datas importantes</h2>
       <button onClick={gerarPDF}>Gerar PDF</button>
     </div>
   );

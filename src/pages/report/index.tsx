@@ -4,6 +4,7 @@ import HeaderLayout from "@/components/HeaderLayout";
 import SelectYearButton from "@/components/SelectYearButton";
 import OKRProgress from "@/components/Reports/OkrProgress";
 import TaskPerformance from "@/components/Reports/TasksPerfomance";
+import Deadlines from "@/components/Reports/Deadlines";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let bouncy: any;
@@ -150,7 +151,8 @@ export default function ReportPage() {
 
           <TaskPerformance/>
 
-          <button
+
+          {/* <button
             onClick={() => handleSectionClick(3)}
             className={`
               ${
@@ -166,7 +168,8 @@ export default function ReportPage() {
               speed='1.75'
               color={'black'}
             /> : "Prazos e Datas Importantes"}
-          </button>
+          </button> */}
+          <Deadlines/>
         </div>
       </div>
     </HeaderLayout>
