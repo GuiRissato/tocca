@@ -1,5 +1,5 @@
 // components/OKRGrid.js
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import OKRCard from "../OKRCard";
 
 interface OKRGridProps {
@@ -7,11 +7,35 @@ interface OKRGridProps {
 }
 
 export default function OKRGrid(props: Readonly<OKRGridProps>) {
-  const [okrs, setOkrs] = useState([
-    { title: "OKR 1º Trimestre", progress: 72 },
-    { title: "OKR 2º Trimestre", progress: 72 },
-    { title: "OKR 3º Trimestre", progress: 72 },
-  ]);
+  const [okrs, setOkrs] = useState([]);
+  const [user, setUser] = useState(null);
+
+
+  async function fetchOkrs() {
+    try {
+       if (user?.company_id != null) {
+
+        const response = await fetch(`/api/okr/2`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        setOkrs(data);
+       }
+    } catch (error) {
+      console.error('Erro ao buscar OKRs:', error);
+    }
+  }
+
+  useEffect(()=>{
+      fetchOkrs()
+  },[user])
+
+  useEffect(() =>{
+    console.log('okrs', okrs)
+  },[okrs])
 
   const handleAddNewOKR = () => {
     setOkrs((prevOkrs) => [
@@ -22,8 +46,9 @@ export default function OKRGrid(props: Readonly<OKRGridProps>) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
       {okrs.map((okr, index) => (
-        <OKRCard key={index} title={okr.title} progress={okr.progress} />
+        <OKRCard key={index} title={okr?.project_name } progress={okr?.progress} />
       ))}
       <>
       {

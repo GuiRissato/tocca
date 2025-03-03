@@ -1,23 +1,67 @@
-import '../../app/globals.css'
 import React, { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useDispatch } from 'react-redux';
+import {jwtDecode} from 'jwt-decode';
+import { setUser } from '@/store/userSlice';
 import Image from 'next/image';
-import logo from '../../assets/logoTocca.png'
+import logo from '../../assets/logoTocca.png';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ username, password, agreeTerms });
-    // Aqui você pode integrar com a sua API de autenticação
+    try {
+      const result = await fetch('/api/user/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      if (result.ok) {
+        const data = await result.json();
+        
+        interface DecodedToken {
+          username: string;
+          id: number;
+          companyId: number;
+        }
+
+        const decodedToken: DecodedToken = jwtDecode<DecodedToken>(data.token);
+
+        dispatch(
+          setUser({
+            id: decodedToken.id,
+            username: decodedToken.username,
+            companyId: decodedToken.companyId,
+          })
+        );
+
+        router.push('/okr');
+      } else {
+        console.error('Erro no login:', result.statusText);
+        alert('Credenciais inválidas ou erro no servidor');
+      }
+    } catch (error) {
+      console.error('Erro no login:', error);
+      alert('Credenciais inválidas ou erro no servidor');
+    }
   };
 
   return (
-    <div className="flex h-screen items-center justify-center ">
+    <div className="flex h-screen items-center justify-center">
       <div className="w-full max-w-md rounded-md p-6 shadow-md bg-[#E4E3E3] border border-black">
-      <Image
+        <Image
           src={logo}
           alt="Logo Tocca"
           width={200}
@@ -26,7 +70,10 @@ const Login = () => {
         />
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700"
+            >
               Username
             </label>
             <input
@@ -39,9 +86,11 @@ const Login = () => {
               required
             />
           </div>
-
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input
@@ -54,7 +103,6 @@ const Login = () => {
               required
             />
           </div>
-
           <div className="mb-4 flex items-center">
             <input
               type="checkbox"
@@ -70,7 +118,6 @@ const Login = () => {
               </a>
             </label>
           </div>
-
           <button
             type="submit"
             className="w-full rounded-md bg-blue-600 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
