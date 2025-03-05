@@ -3,9 +3,10 @@ import '../../app/globals.css'
 import OKRGrid from "../../components/OKRGrid";
 import { useState } from 'react';
 import SelectYearButton from '@/components/SelectYearButton';
-import { GetServerSideProps } from 'next';
-import toccaAPI from '../../../api';
 import { wrapper } from '@/store';
+import { jwtDecode } from 'jwt-decode';
+import { DecodedToken } from '../login';
+import { GetServerSideProps } from 'next';
 
 type OKRPageProps = {
   initialYear: number;
@@ -14,38 +15,50 @@ type OKRPageProps = {
 
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) =>
-    async () => {
-      const state = store.getState();
-      const { companyId } = state.user;
+    async (context: GetServerSideProps) => {
 
-      const safeCompanyId = companyId ?? 2;
-
-      const response = await fetch(`/api/okr/${safeCompanyId}/years`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
+      let initialYear = new Date().getFullYear();
+      let availableYears: number[] = [];
       
-      var availableYears: number[] = [];
-      if (Array.isArray(data)) {
-        availableYears = data;
+      let userJwt: DecodedToken | null = null;
+
+      if (context.req.cookies.userJWT) {
+        const parsedCookies: DecodedToken = jwtDecode(context.req.cookies.userJWT);
+        userJwt = parsedCookies;
       }
+      try {
+        
+        const response = await fetch('/api/okr/years', {
+          method: 'GET',
+        });
 
-      // Define o ano inicial
-      const initialYear =
-        availableYears.length > 0
-          ? availableYears[0]
-          : new Date().getFullYear();
+        // const data = await response.json();
+        
+        // let availableYears: number[] = [];
+        // if (Array.isArray(data)) {
+        //   availableYears = data;
+        // }
 
-      return {
+        // const initialYear =
+        //   availableYears.length > 0
+        //     ? availableYears[0]
+        //     : new Date().getFullYear();
+
+        // return {
+        //   props: {
+        //     initialYear,
+        //     availableYears,
+        //   },
+        // };
+      } catch (error) {
+       console.log('error', error) 
+       return {
         props: {
-          initialYear,
-          availableYears,
-        },
-      };
+          initialYear: 2025,
+          availableYears: 2025
+        }
+       }
+      }
     }
 );
 
