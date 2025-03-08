@@ -1,12 +1,13 @@
 import HeaderLayout from '@/components/HeaderLayout';
 import '../../app/globals.css'
 import OKRGrid from "../../components/OKRGrid";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SelectYearButton from '@/components/SelectYearButton';
-import { wrapper } from '@/store';
+import { RootState, wrapper } from '@/store';
 import { jwtDecode } from 'jwt-decode';
 import { DecodedToken } from '../login';
-import { GetServerSideProps } from 'next';
+import { GetServerSidePropsResult } from 'next';
+import { useSelector } from 'react-redux';
 
 type OKRPageProps = {
   initialYear: number;
@@ -14,12 +15,16 @@ type OKRPageProps = {
 };
 
 export const getServerSideProps = wrapper.getServerSideProps(
-  (store) =>
-    async (context: GetServerSideProps) => {
-
-      let initialYear = new Date().getFullYear();
-      let availableYears: number[] = [];
-      
+  () =>
+    async (
+      context
+    ): Promise<
+      GetServerSidePropsResult<{
+        initialYear?: number;
+        availableYears?: number[];
+        error?: string;
+      }>
+    > => {
       let userJwt: DecodedToken | null = null;
 
       if (context.req.cookies.userJWT) {
@@ -27,55 +32,90 @@ export const getServerSideProps = wrapper.getServerSideProps(
         userJwt = parsedCookies;
       }
       try {
-        
-        const response = await fetch('/api/okr/years', {
-          method: 'GET',
-        });
+        const baseUrl = `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
+        const response = await fetch(
+          `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
+          {
+            method: 'GET',
+          }
+        );
 
-        // const data = await response.json();
-        
-        // let availableYears: number[] = [];
-        // if (Array.isArray(data)) {
-        //   availableYears = data;
-        // }
-
-        // const initialYear =
-        //   availableYears.length > 0
-        //     ? availableYears[0]
-        //     : new Date().getFullYear();
-
-        // return {
-        //   props: {
-        //     initialYear,
-        //     availableYears,
-        //   },
-        // };
-      } catch (error) {
-       console.log('error', error) 
-       return {
-        props: {
-          initialYear: 2025,
-          availableYears: 2025
+        if (!response.ok) {
+          throw new Error(`Erro: ${response.status} - ${response.statusText}`);
         }
-       }
+
+        const data = await response.json();
+
+        let availableYears: number[] = [];
+        if (Array.isArray(data)) {
+          availableYears = data;
+        }
+
+        const initialYear = availableYears.length > 0 ? availableYears[0] : new Date().getFullYear();
+
+        return {
+          props: {
+            initialYear,
+            availableYears,
+          },
+        };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+
+        console.error('Erro na requisição:', error);
+        return {
+          props: {
+            error: error.message ?? 'Ocorreu um erro na requisição.',
+          },
+        };
       }
     }
 );
 
 
-export default function OKRPage({initialYear, availableYears}: Readonly<OKRPageProps>) {
+export default function OKRPage({ initialYear, availableYears }: Readonly<OKRPageProps>) {
+
+  const user = useSelector((state: RootState) => state.user);
 
   const [selectedYear, setSelectedYear] = useState<number>(initialYear);
-  const [years, setYears] = useState<number[]>(availableYears);
+  const [years] = useState<number[]>(availableYears);
+  const [okrs, setOkrs] = useState([]);
+
+  async function fetchOkrs() {
+    try {
+      
+      if (user?.companyId != null) {
+        const response = await fetch(`/api/okr/${user.companyId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar OKRs: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setOkrs(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar OKRs:', error);
+    }
+  }
+
+  useEffect(() => {
+    fetchOkrs();
+  }, [years]);
 
   return (
     <HeaderLayout>
-    <div className="container mx-auto pt-[60px] mt-10 mb-10">
-      <header className="mb-4">
-        <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear} />
-      </header>
-      <OKRGrid selectedYear={selectedYear} />
-    </div>
-  </HeaderLayout>
+      <div className="container mx-auto pt-[60px] mt-10 mb-10">
+        <header className="mb-4">
+          <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear} />
+        </header>
+        <OKRGrid okrs={okrs} setOkrs={setOkrs} />
+      </div>
+    </HeaderLayout>
   );
 }
