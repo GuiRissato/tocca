@@ -8,6 +8,7 @@ import { jwtDecode } from 'jwt-decode';
 import { DecodedToken } from '../login';
 import { GetServerSidePropsResult } from 'next';
 import { useSelector } from 'react-redux';
+import { UserState } from '@/store/userSlice';
 
 type OKRPageProps = {
   initialYear: number;
@@ -72,6 +73,29 @@ export const getServerSideProps = wrapper.getServerSideProps(
     }
 );
 
+export async function fetchOkrs(user: UserState, setOkrs: React.Dispatch<React.SetStateAction<any[]>>) {
+  try {
+    
+    if (user?.companyId != null) {
+      const response = await fetch(`/api/okr/${user.companyId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar OKRs: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setOkrs(data);
+    }
+  } catch (error) {
+    console.error('Erro ao buscar OKRs:', error);
+  }
+}
+
 
 export default function OKRPage({ initialYear, availableYears }: Readonly<OKRPageProps>) {
 
@@ -81,31 +105,10 @@ export default function OKRPage({ initialYear, availableYears }: Readonly<OKRPag
   const [years] = useState<number[]>(availableYears);
   const [okrs, setOkrs] = useState([]);
 
-  async function fetchOkrs() {
-    try {
-      
-      if (user?.companyId != null) {
-        const response = await fetch(`/api/okr/${user.companyId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erro ao buscar OKRs: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        setOkrs(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar OKRs:', error);
-    }
-  }
+ 
 
   useEffect(() => {
-    fetchOkrs();
+    fetchOkrs(user, setOkrs);
   }, [years]);
 
   return (

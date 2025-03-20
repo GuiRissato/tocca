@@ -12,14 +12,16 @@ interface LoginProps {
   userNameFromCookie?: string | null;
 }
 
+export type User = {
+  username: string;
+  id: number;
+  companyId: number;
+}
+
 export interface DecodedToken {
   exp: number;
   iat: number;
-  user:{
-    username: string;
-    id: number;
-    companyId: number;
-  }
+  user: User;
 }
 
 function LoginPage({ alreadyLoggedIn }: Readonly<LoginProps>) {
