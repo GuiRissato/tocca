@@ -15,6 +15,20 @@ type OKRPageProps = {
   availableYears: number[];
 };
 
+export interface OkrProject {
+  project: {
+    id: number;
+    company_id: number;
+    project_name: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+  };
+  objectivesProgress: number;
+  keyResultsProgress: number;
+}
+
+
 export const getServerSideProps = wrapper.getServerSideProps(
   () =>
     async (
@@ -73,7 +87,7 @@ export const getServerSideProps = wrapper.getServerSideProps(
     }
 );
 
-export async function fetchOkrs(user: UserState, setOkrs: React.Dispatch<React.SetStateAction<any[]>>) {
+export async function fetchOkrs(user: UserState, setOkrs: React.Dispatch<React.SetStateAction<OkrProject[]>>) {
   try {
     
     if (user?.companyId != null) {
@@ -103,7 +117,7 @@ export default function OKRPage({ initialYear, availableYears }: Readonly<OKRPag
 
   const [selectedYear, setSelectedYear] = useState<number>(initialYear);
   const [years] = useState<number[]>(availableYears);
-  const [okrs, setOkrs] = useState([]);
+  const [okrs, setOkrs] = useState<Array<OkrProject>>([]);
 
  
 

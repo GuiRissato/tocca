@@ -1,16 +1,15 @@
 import { useState } from "react";
 import OKRCard from "../OKRCard";
 import ProjectOKRCreateModal from "../Modal/OkrProject/create"; // Ajuste o caminho se necessário
-import toccaAPI from "../../../api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { fetchOkrs } from "@/pages/okr";
+import { fetchOkrs, OkrProject } from "@/pages/okr";
 
   interface OKRGridProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    okrs: any[];
+    okrs: OkrProject[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setOkrs: React.Dispatch<React.SetStateAction<any[]>>; 
+    setOkrs: React.Dispatch<React.SetStateAction<OkrProject[]>>; 
   }
 
 
@@ -29,8 +28,10 @@ export default function OKRGrid({ okrs, setOkrs }: Readonly<OKRGridProps>) {
       });
 
       const data = await response.json();
+      if(data){
+        fetchOkrs(user, setOkrs);
+      }
 
-      fetchOkrs(user, setOkrs);
     } catch (error) {
       console.error("Erro ao criar OKR Project:", error);
     }
@@ -39,8 +40,8 @@ export default function OKRGrid({ okrs, setOkrs }: Readonly<OKRGridProps>) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {okrs.map((okr: { name: string; description: string }, index: number) => (
-          <OKRCard key={index} data={okr} />
+        {okrs.map((okr: OkrProject) => (
+          <OKRCard key={okr.project.id} data={okr} />
         ))}
 
         {okrs.length < 4 && (

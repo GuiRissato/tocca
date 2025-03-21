@@ -1,3 +1,4 @@
+import { OkrProject } from "@/pages/okr";
 import {useRouter} from "next/router";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
@@ -11,14 +12,9 @@ export interface Project {
   updated_at: string;
 }
 
-export interface OKRData {
-  project: Project;
-  objectivesProgress: number;
-  keyResultsProgress: number;
-}
 
 interface OKRCardProps {
-  data?: OKRData;
+  data?: OkrProject;
 }
 
 export default function OKRCard(props: Readonly<OKRCardProps>) {
@@ -27,7 +23,9 @@ export default function OKRCard(props: Readonly<OKRCardProps>) {
     router.push(`/okr/objective/${projectId}`);
   }
   return (
-    <div className="relative bg-[#F4F4F5] rounded-[20px] w-[100%] h-[230px] flex justify-around shadow-lg p-6"
+    <div 
+      className="relative bg-[#F4F4F5] rounded-[20px] w-[100%] h-[230px] flex justify-around shadow-lg p-6 
+                transition-all duration-300 hover:shadow-xl hover:bg-[#EAEAEB] cursor-pointer"
       onClick={() => handleNavigate(Number(props.data?.project.id))}
     >
       <div className="flex flex-col justify-center">

@@ -3,31 +3,123 @@ import HeaderLayout from "@/components/HeaderLayout";
 import "../../../app/globals.css";
 import ObjectiveCard from "@/components/ObjectiveCard";
 import ObjectiveModal from "@/components/Modal/Objective/create";
-
-export interface Objective {
-  id: number;
-  title: string;
-  description: string;
-  results: string[];
-}
+import SelectYearButton from "@/components/SelectYearButton";
+import { wrapper } from "@/store";
+import { GetServerSidePropsResult } from "next";
+import { DecodedToken } from "@/pages/login";
+import { jwtDecode } from "jwt-decode";
 
 export interface KeyResult {
   id: number;
+  objective_id: number;
   key_result_name: string;
   description: string;
+  status: string;
+  start_date: Date;
+  end_date: Date;
+  crated_at: Date;
+  updated_at: Date;
 }
 
-export default function OKRPage() {
-  const [years, setYears] = useState<number[]>([2023,2024]);
-  const [selectedYear, setSelectedYear] = useState<number>(2023);
+export interface Objective {
+  id: number;
+  objective_name: string;
+  description?: string;
+  status?: string;
+  start_date?: Date;
+  end_date?: Date;
+  crated_at?: Date;
+  updated_at?: Date;
+  key_results: KeyResult[];
+}
+
+export interface Objectives {
+  object: Objective;
+}
+
+export interface OKRPageProps {
+  initialYear: number;
+  availableYears: number[];
+  objectives: Objectives[];
+}
+
+export const getServerSideProps = wrapper.getServerSideProps(
+  () =>
+    async (context): Promise<GetServerSidePropsResult<OKRPageProps>> => {
+      let userJwt: DecodedToken | null = null;
+      if (context.req.cookies.userJWT) {
+        try {
+          userJwt = jwtDecode(context.req.cookies.userJWT);
+        } catch (error) {
+          console.error("Falha ao decodificar o JWT:", error);
+        }
+      }
+
+      try {
+        const protocol = context.req.headers["x-forwarded-proto"] || "http";
+        const host = context.req.headers.host;
+        const baseUrl = `${protocol}://${host}`;
+
+        // Fetch available years
+        const yearsResponse = await fetch(
+          `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (!yearsResponse.ok) {
+          throw new Error(`Erro na requisição de anos: ${yearsResponse.status} - ${yearsResponse.statusText}`);
+        }
+        const yearsData = await yearsResponse.json();
+        const availableYears: number[] = Array.isArray(yearsData) ? yearsData : [];
+        const initialYear = availableYears.length > 0 ? availableYears[0] : new Date().getFullYear();
+
+        const { projectId } = context.params || {};
+        if (!projectId) {
+          throw new Error("Project ID is missing in the URL parameters.");
+        }
+        const objectivesResponse = await fetch(
+          `${baseUrl}/api/objectives/keyresults/${projectId}`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (!objectivesResponse.ok) {
+          throw new Error(`Erro na requisição de objetivos: ${objectivesResponse.status} - ${objectivesResponse.statusText}`);
+        }
+        const objectivesData = await objectivesResponse.json();
+
+        return {
+          props: {
+            initialYear,
+            availableYears,
+            objectives: objectivesData,
+          },
+        };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        console.error("Erro na requisição:", error);
+        return {
+          props: {
+            initialYear: new Date().getFullYear(),
+            availableYears: [],
+            objectives: [],
+          },
+        };
+      }
+    }
+);
+
+
+
+export default function ObjectivesPage({ initialYear, availableYears, objectives: initialObjectives, }: Readonly<OKRPageProps>) {
+  const [selectedYear, setSelectedYear] = useState<number>(initialYear);
+  const [years] = useState<number[]>(availableYears);
   const [openModal, setOpenModal] = useState(false);
   
-  const [objectives, setObjectives] = useState<Objective[]>([
-    { id: 1, title: "Objetivo 1", description: "Descrição", results: ["Resultado 1", "Resultado 2", "Resultado 3"] },
-    { id: 2, title: "Objetivo 2", description: "Descrição", results: ["Resultado 1", "Resultado 2", "Resultado 3"] },
-    { id: 3, title: "Objetivo 3", description: "Descrição", results: ["Resultado 1", "Resultado 2", "Resultado 3"] },
-    { id: 4, title: "Objetivo 4", description: "Descrição", results: ["Resultado 1", "Resultado 2", "Resultado 3"] },
-  ]);
+  const [objectives, setObjectives] = useState<Objectives[]>(initialObjectives);
 
   const addObjective = () => {
     setOpenModal(true);
@@ -43,19 +135,14 @@ export default function OKRPage() {
       {/* Layout Principal com Altura da Tela e Scroll Horizontal */}
       <div className="container mx-auto pt-[60px] mt-10 mb-10">
       <header className="ml-6 mb-4">
-        <div className="flex w-64">
-          <label
-            className="block w-full px-4 py-2 text-gray-700 bg-[#F4F4F5] rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-           {selectedYear}
-          </label>
-        </div>
+        <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear}/>
       </header>
       <div className="flex h-full items-center space-x-6 px-6">
             {/* Cards de Objetivos */}
-            {objectives.map((objective, index) => (
+            {objectives.map((objective, index) => {
+              return(
               <ObjectiveCard objective={objective} key={index} setObjective={setObjectives}/>
-            ))}
+            )})}
 
             {/* Card para criar novo Objetivo */}
             <div
