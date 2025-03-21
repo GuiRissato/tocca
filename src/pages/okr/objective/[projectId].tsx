@@ -139,9 +139,9 @@ export default function ObjectivesPage({ initialYear, availableYears, objectives
       </header>
       <div className="flex h-full items-center space-x-6 px-6">
             {/* Cards de Objetivos */}
-            {objectives.map((objective, index) => {
+            {objectives.map(( objective ) => {
               return(
-              <ObjectiveCard objective={objective} key={index} setObjective={setObjectives}/>
+              <ObjectiveCard objective={objective as unknown as Objective} key={objective.object.id} setObjective={setObjectives}/>
             )})}
 
             {/* Card para criar novo Objetivo */}

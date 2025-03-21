@@ -2,21 +2,21 @@
 import { useState } from "react";
 import CreateKeyResultModal from "../Modal/KeyResult/create";
 import EditKeyResultModal from "../Modal/KeyResult/edit";
-import { Objective } from "@/pages/okr/objective/[projectId]";
+import { Objectives, Objective } from "@/pages/okr/objective/[projectId]";
 
 interface ObjectiveCardProps {
   objective: Objective;
-  setObjective: React.Dispatch<React.SetStateAction<Objective[]>>;
+  setObjective: React.Dispatch<React.SetStateAction<Objectives[]>>;
 }
 
 export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
   // Variáveis de estado para controle dos modais de criação e edição
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
-
   // Extraindo os dados do objetivo de forma mais simples de manipular
-  const object = props.objective;
-  const { id, objective_name, description, key_results } = object;
+  console.log('props', props)
+  const { objective } = props;
+  const { id, objective_name, description, key_results } = objective;
 
   function handleAddKeyResult() {
     setOpenModal(true);
