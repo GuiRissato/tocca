@@ -5,9 +5,7 @@ import axios from 'axios';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if(req.method === 'POST'){
         try {
-          console.log('entrei')
             const { project_id, objective_name, description, start_date, status, end_date } = req.body;
-            console.log(req.body)
             const response = await toccaAPI.post('/objectives', {
                 project_id,
                 objective_name,

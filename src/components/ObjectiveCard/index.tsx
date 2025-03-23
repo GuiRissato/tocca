@@ -1,12 +1,11 @@
-
 import { useState } from "react";
 import CreateKeyResultModal from "../Modal/KeyResult/create";
 import EditKeyResultModal from "../Modal/KeyResult/edit";
-import { Objectives, Objective } from "@/pages/okr/objective/[projectId]";
+import { Objective } from "@/pages/okr/objective/[projectId]";
 
 interface ObjectiveCardProps {
   objective: Objective;
-  setObjective: React.Dispatch<React.SetStateAction<Objectives[]>>;
+  setObjective: React.Dispatch<React.SetStateAction<Objective[]>>;
 }
 
 export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
@@ -16,7 +15,41 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
   // Extraindo os dados do objetivo de forma mais simples de manipular
   console.log('props', props)
   const { objective } = props;
-  const { id, objective_name, description, key_results } = objective;
+  const { id, objective_name, description, key_results, start_date, end_date, status } = objective;
+
+  // Format dates for display
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return "Não definida";
+    return new Date(date).toLocaleDateString('pt-BR');
+  };
+
+  // Get status display text
+  const getStatusText = (statusValue: string | undefined) => {
+    if (!statusValue) return "Não definido";
+    
+    const statusMap: Record<string, string> = {
+      'active': 'Ativo',
+      'inactive': 'Inativo',
+      'completed': 'Concluído',
+      'pending': 'Pendente'
+    };
+    
+    return statusMap[statusValue] || statusValue;
+  };
+
+  // Get status color class
+  const getStatusColorClass = (statusValue: string | undefined) => {
+    if (!statusValue) return "bg-gray-200 text-gray-600";
+    
+    const statusColorMap: Record<string, string> = {
+      'active': "bg-green-100 text-green-600",
+      'inactive': "bg-gray-100 text-gray-600",
+      'completed': "bg-blue-100 text-blue-600",
+      'pending': "bg-yellow-100 text-yellow-600"
+    };
+    
+    return statusColorMap[statusValue] || "bg-gray-200 text-gray-600";
+  };
 
   function handleAddKeyResult() {
     setOpenModal(true);
@@ -71,11 +104,31 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
         {description}
       </p>
 
-      <div className="mt-[80%]">
+      {/* Informações adicionais do objetivo */}
+      <div className="mb-4 space-y-2 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-gray-600 font-medium">Status:</span>
+          <span className={`px-2 py-1 rounded-full text-xs ${getStatusColorClass(status)}`}>
+            {getStatusText(status)}
+          </span>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <span className="text-gray-600 font-medium">Data de início:</span>
+          <span className="text-gray-700">{formatDate(start_date)}</span>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <span className="text-gray-600 font-medium">Data de término:</span>
+          <span className="text-gray-700">{formatDate(end_date)}</span>
+        </div>
+      </div>
+
+      <div className="mt-auto">
         <p className="text-gray-600 font-medium mb-2">
           Resultados Chaves
         </p>
-        <ul className="space-y-2 mb-2">
+        <ul className="space-y-2 mb-2 max-h-[200px] overflow-y-auto">
           {key_results.map((result, index) => (
             <li
               key={index}
@@ -92,7 +145,7 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
 
       <button
         onClick={handleAddKeyResult}
-        className="space-y-2 w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg"
+        className="mt-2 w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg"
       >
         + Criar Resultados Chaves
       </button>
