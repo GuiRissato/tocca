@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import "../../../app/globals.css";
 import ObjectiveCard from "@/components/ObjectiveCard";
@@ -8,6 +8,7 @@ import { wrapper } from "@/store";
 import { GetServerSidePropsResult } from "next";
 import { DecodedToken } from "@/pages/login";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/router";
 
 export interface KeyResult {
   id: number;
@@ -32,15 +33,10 @@ export interface Objective {
   updated_at?: Date;
   key_results: KeyResult[];
 }
-
-export interface Objectives {
-  object: Objective;
-}
-
 export interface OKRPageProps {
   initialYear: number;
   availableYears: number[];
-  objectives: Objectives[];
+  objectives: Objective[];
 }
 
 export const getServerSideProps = wrapper.getServerSideProps(
@@ -60,7 +56,6 @@ export const getServerSideProps = wrapper.getServerSideProps(
         const host = context.req.headers.host;
         const baseUrl = `${protocol}://${host}`;
 
-        // Fetch available years
         const yearsResponse = await fetch(
           `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
           {
@@ -113,22 +108,44 @@ export const getServerSideProps = wrapper.getServerSideProps(
 );
 
 
-
-export default function ObjectivesPage({ initialYear, availableYears, objectives: initialObjectives, }: Readonly<OKRPageProps>) {
+export default function ObjectivesPage({ initialYear, availableYears, objectives: initialObjectives }: Readonly<OKRPageProps>) {
   const [selectedYear, setSelectedYear] = useState<number>(initialYear);
   const [years] = useState<number[]>(availableYears);
   const [openModal, setOpenModal] = useState(false);
   
-  const [objectives, setObjectives] = useState<Objectives[]>(initialObjectives);
+  const [objectives, setObjectives] = useState<Objective[]>(initialObjectives);
+  const router = useRouter();
+  const { projectId } = router.query;
+
+  const fetchObjectives = async () => {
+    if (!projectId) return;
+
+    try {
+      const response = await fetch(`/api/objectives/keyresults/${projectId}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na requisição de objetivos: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setObjectives(data);
+    } catch (error) {
+      console.error("Erro ao buscar objetivos:", error);
+      alert("Ocorreu um erro ao buscar os objetivos. Por favor, tente novamente.");
+    }
+  };
 
   const addObjective = () => {
     setOpenModal(true);
-    // const newId = objectives.length + 1;
-    // setObjectives([
-    //   ...objectives,
-    //   { id: newId, title: `Objetivo ${newId}`, description: "Nova Descrição", results: [] },
-    // ]);
   };
+
+  useEffect(() => {
+    if(!openModal){
+      fetchObjectives()
+    }
+  }, [openModal]);
 
   return (
     <HeaderLayout>
@@ -139,9 +156,9 @@ export default function ObjectivesPage({ initialYear, availableYears, objectives
       </header>
       <div className="flex h-full items-center space-x-6 px-6">
             {/* Cards de Objetivos */}
-            {objectives.map(( objective ) => {
+            {objectives.map(( objective: Objective ) => {
               return(
-              <ObjectiveCard objective={objective as unknown as Objective} key={objective.object.id} setObjective={setObjectives}/>
+              <ObjectiveCard objective={objective as unknown as Objective} key={objective.id} setObjective={setObjectives}/>
             )})}
 
             {/* Card para criar novo Objetivo */}
@@ -157,7 +174,7 @@ export default function ObjectivesPage({ initialYear, availableYears, objectives
               </button>
             </div>
           </div>
-          {openModal && <ObjectiveModal onClose={setOpenModal} open={openModal} addObjective={addObjective} />}
+          {openModal && <ObjectiveModal onClose={setOpenModal} open={openModal} addObjective={addObjective}/>}
       </div>
       
     </HeaderLayout>
