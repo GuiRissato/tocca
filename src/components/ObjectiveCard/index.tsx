@@ -3,6 +3,7 @@ import CreateKeyResultModal from "../Modal/KeyResult/create";
 import EditKeyResultModal from "../Modal/KeyResult/edit";
 import { Objective, KeyResult } from "@/pages/okr/objective/[projectId]";
 import { useRouter } from "next/router";
+import EditObjectiveModal from "../Modal/Objective/edit";
 
 interface ObjectiveCardProps {
   objective: Objective;
@@ -12,9 +13,11 @@ interface ObjectiveCardProps {
 export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+  const [openEditObjectiveModal, setOpenEditObjectiveModal] = useState<boolean>(false);
   const [selectedKeyResult, setSelectedKeyResult] = useState<KeyResult | null>(null);
   const { objective, setObjective } = props;
   const { id, objective_name, description, key_results, start_date, end_date, status } = objective;
+
   const router = useRouter();
 
   const formatDate = (date: Date | undefined) => {
@@ -75,9 +78,9 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
         if (obj.id === id) {
           return {
             ...obj,
-            key_results: obj.key_results.map(kr => 
+            key_results: [...obj.key_results.map(kr => 
               kr.id === updatedKeyResult.id ? updatedKeyResult : kr
-            )
+            )]
           };
         }
         return obj;
@@ -86,6 +89,13 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
     
     setOpenEditModal(false);
     setSelectedKeyResult(null);
+  }
+
+  function handleUpdateObjective(updatedObjective: Objective) {
+    setObjective(prevObjectives => {
+      return prevObjectives.map(obj => obj.id === id ? updatedObjective : obj);
+    });
+    setOpenEditObjectiveModal(false);
   }
 
   const redirectToKanban = (keyResultId: string | number) => {
@@ -97,8 +107,19 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
       key={id}
       className="bg-gray-100 rounded-lg shadow-md w-[300px] h-[calc(100vh-210px)] p-4 flex flex-col flex-shrink-0"
     >
-      <div className="text-lg font-semibold text-gray-700 mb-5">
-        {objective_name}
+      <div className="flex justify-between items-center mb-5">
+        <div className="text-lg font-semibold text-gray-700">
+          {objective_name}
+        </div>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpenEditObjectiveModal(true);
+          }}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          Editar
+        </button>
       </div>
 
       <p className="text-sm text-gray-500 h-24">
@@ -180,6 +201,15 @@ export default function ObjectiveCard(props: Readonly<ObjectiveCardProps>) {
           keyResult={selectedKeyResult}
         />
       )}
+      {openEditObjectiveModal && (
+        <EditObjectiveModal
+          onClose={setOpenEditObjectiveModal}
+          open={openEditObjectiveModal}
+          objective={objective}
+          updateObjective={handleUpdateObjective}
+        />
+      )}
+
     </div>
   );
 }

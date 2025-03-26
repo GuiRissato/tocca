@@ -150,7 +150,7 @@ export default function EditKeyResultModal(props: Readonly<ModalProps>) {
               type="text"
               value={formData.key_result_name}
               onChange={handleChange}
-              className="w-full px-4 py-2 border bg-[#D4D4D4] rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+              className="w-full px-4 py-2 border  bg-gray-100 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
               placeholder="Digite o título do resultado chave"
             />
           </div>
@@ -164,7 +164,7 @@ export default function EditKeyResultModal(props: Readonly<ModalProps>) {
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 border bg-[#D4D4D4] rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+              className="w-full px-4 py-2 border  bg-gray-100 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
               placeholder="Descreva o resultado chave"
             />
           </div>
@@ -179,7 +179,7 @@ export default function EditKeyResultModal(props: Readonly<ModalProps>) {
                 type="date"
                 value={formData.start_date}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border bg-[#D4D4D4] rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                className="w-full px-4 py-2 border  bg-gray-100 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
               />
             </div>
             
@@ -192,7 +192,7 @@ export default function EditKeyResultModal(props: Readonly<ModalProps>) {
                 type="date"
                 value={formData.end_date}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border bg-[#D4D4D4] rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                className="w-full px-4 py-2 border bg-gray-100 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
               />
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function EditKeyResultModal(props: Readonly<ModalProps>) {
               id="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-4 py-2 border bg-[#D4D4D4] rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+              className="w-full px-4 py-2 border  bg-gray-100 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
             >
               <option value="active">Ativo</option>
               <option value="pending">Pendente</option>

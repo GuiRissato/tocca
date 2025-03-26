@@ -16,6 +16,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 created_at: new Date(),
                 updated_at: new Date()
               });
+
+              const columns_key_results = [
+                {
+                  column_name: 'Para Fazer',
+                  position: 1,
+                  key_result_id: response.data.id
+                },
+                {
+                  column_name: 'Pendente',
+                  position: 2,
+                  key_result_id: response.data.id
+                },
+                {
+                  column_name: 'Em Progresso',
+                  position: 3,
+                  key_result_id: response.data.id
+                },
+                {
+                  column_name: 'Finalizado',
+                  position: 4,
+                  key_result_id: response.data.id
+                },
+                {
+                  column_name: 'Fechado',
+                  position: 5,
+                  key_result_id: response.data.id
+                },
+              ]
+
+              for(const column of columns_key_results){
+
+                await toccaAPI.post('/columns-key-result', {
+                  column_name: column.column_name,
+                  position: column.position,
+                  key_result_id: column.key_result_id
+                })
+              }
+
               return res.status(200).json(response.data);
         } catch (error: unknown) {            
             if (axios.isAxiosError(error)) {
