@@ -155,13 +155,11 @@ export default function ObjectivesPage({ initialYear, availableYears, objectives
         <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear}/>
       </header>
       <div className="flex h-full items-center space-x-6 px-6">
-            {/* Cards de Objetivos */}
             {objectives.map(( objective: Objective ) => {
               return(
               <ObjectiveCard objective={objective as unknown as Objective} key={objective.id} setObjective={setObjectives}/>
             )})}
 
-            {/* Card para criar novo Objetivo */}
             <div
              className="bg-gray-200 rounded-lg shadow-md w-[300px] h-[90%] flex items-center justify-center p-3 flex-shrink-0 cursor-pointer" 
              onClick={addObjective}
