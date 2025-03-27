@@ -233,7 +233,7 @@ export default function Kanban({ initialData, keyresultName }: Readonly<KanbanPr
     });
   };
   
-  const handleReportBlocked = (taskId: string) => {
+  const onReportDelayed = (taskId: string) => {
     setCurrentTaskId(taskId);
     setOpenDelayedTask(true);
   };
@@ -427,8 +427,8 @@ export default function Kanban({ initialData, keyresultName }: Readonly<KanbanPr
               handleCardDragOver={handleCardDragOver} 
               handleAddTask={handleAddTask} 
               onDragStart={onDragStart}
-              onReportBlocked={handleReportBlocked}
-              key={index}
+              onReportDelayed={onReportDelayed}
+              key={column.id}
             />
           ))}
         </div>

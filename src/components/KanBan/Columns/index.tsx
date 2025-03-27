@@ -26,7 +26,7 @@ interface OkrColumnsProps {
     handleCardDragOver: (event: React.DragEvent<HTMLDivElement>, taskId: string) => void;
     handleAddTask: (columnId: string) => void;
     onDragStart: (task: Task, sourceColumn: string) => void;
-    onReportBlocked: (taskId: string) => void;
+    onReportDelayed: (taskId: string) => void;
 }
 
 export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
@@ -128,10 +128,10 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                     {/* Report Blocked Button */}
                     <div className="mt-3 flex justify-end">
                         <button
-                            onClick={() => props.onReportBlocked(task.id)}
+                            onClick={() => props.onReportDelayed(task.id)}
                             className="bg-red-100 hover:bg-red-200 text-red-700 text-xs px-2 py-1 rounded"
                         >
-                            Reportar Bloqueio
+                            Reportar Atraso
                         </button>
                     </div>
                 </div>

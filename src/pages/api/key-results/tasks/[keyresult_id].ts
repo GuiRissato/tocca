@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if(req.method === 'GET'){
         try {
             const { keyresult_id } = req.query;
-            const response = await toccaAPI.get(`/tasks/${keyresult_id}`);
+            const response = await toccaAPI.get(`/tasks/findAllKanban/${keyresult_id}`);
             
               return res.status(200).json(response.data);
         } catch (error: unknown) {            

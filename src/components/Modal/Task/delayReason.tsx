@@ -38,7 +38,7 @@ export default function DelayedTaskModal (props: Readonly<ModalProps>) {
         <form>
           <div className="mb-4">
             <label className="block mb-2 text-sm font-medium text-gray-700" htmlFor="description">
-              Descrição do bloqueio
+              Descrição do atraso
             </label>
             <textarea
               id="description"
