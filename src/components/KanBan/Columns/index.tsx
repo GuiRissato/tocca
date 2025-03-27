@@ -64,10 +64,11 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                     <h3 className="text-md font-medium text-gray-800 mb-2">
                         {task.title}
                     </h3>
+                    <div className="border-b border-gray-300 my-4"></div>
                     <p className="text-sm text-gray-600 mb-3">
                         {task.description}
                     </p>
-                    
+                    <div className="border-b border-gray-300 my-4"></div>
                     {/* Due Date with improved label */}
                     {task.dueDate && (
                         <div className="flex items-center text-xs text-gray-700 mb-2">
@@ -78,7 +79,7 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                             <span className="ml-1">{formatDate(task.dueDate)}</span>
                         </div>
                     )}
-                    
+                    <div className="border-b border-gray-300 my-4"></div>
                     {/* Priority */}
                     {task.priority && (
                         <div className="flex items-center text-xs text-gray-700 mb-2">
@@ -89,7 +90,7 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                             <span className="ml-1">{task.priority}</span>
                         </div>
                     )}
-                    
+                    <div className="border-b border-gray-300 my-4"></div>
                     {/* Tags with improved label */}
                     {task.tags && task.tags.length > 0 && (
                         <div className="mb-2">
@@ -106,7 +107,7 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                             </div>
                         </div>
                     )}
-                    
+                    <div className="border-b border-gray-300 my-4"></div>
                     {/* Assignees with improved label */}
                     {task.users && task.users.length > 0 && (
                         <div className="mb-2">
@@ -123,7 +124,7 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                             </div>
                         </div>
                     )}
-                    
+                    <div className="border-b border-gray-300 my-4"></div>
                     {/* Report Blocked Button */}
                     <div className="mt-3 flex justify-end">
                         <button
