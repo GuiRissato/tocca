@@ -1,11 +1,55 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import "../../../app/globals.css";
 import OkrColumns from "@/components/KanBan/Columns";
 import CreateTaskModal from "@/components/Modal/Task/create";
-import EditKeyResultModal from "@/components/Modal/KeyResult/edit";
 import EditTaskModal from "@/components/Modal/Task/edit";
 import DelayedTaskModal from "@/components/Modal/Task/delayReason";
+import { GetServerSideProps } from "next";
+
+interface Tag {
+  task_id: number;
+  tag_id: number;
+  tag_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Assignee {
+  task_id: number;
+  user_id: number;
+  email: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiTask {
+  id: number;
+  key_result_id: number;
+  task_name: string;
+  description: string;
+  delay_reason: string;
+  priority: number;
+  due_date: string;
+  column_key_result_id: number;
+  created_at: string;
+  updated_at: string;
+  tags: Tag[];
+  assignees: Assignee[];
+}
+
+interface ApiColumn {
+  column_id: number;
+  column_name: string;
+  tasks: ApiTask[];
+}
+
+interface ApiResponse {
+  key_result_id: string;
+  key_result_name: string;
+  columns: ApiColumn[];
+}
 
 interface Task {
   id: string;
@@ -17,6 +61,8 @@ interface Task {
   comments?: string[];
   tags?: string[];
   users?: string[];
+  dueDate?: string;
+  delayReason?: string;
 }
 
 interface Column {
@@ -29,47 +75,104 @@ interface KanbanData {
   columns: Column[];
 }
 
-export default function Kanban() {
-  
-  const [kanbanData, setKanbanData] = useState<KanbanData>({
-    columns : [
+interface KanbanProps {
+  initialData: KanbanData;
+  keyresultName: string;
+}
 
-      {
-        id: "column-1",
-        title: "Para Fazer",
-        tasks: [
-          {
-              id: "task-1",
-              title: "Tarefa 1",
-              description: "Descrição 1",
-              hours: "3 hours",
-              priority: "Priority 1",
-              order: 1
-          },
-        ],
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { keyresultId } = context.params || {};
+  
+  try {
+
+    const protocol = context.req.headers["x-forwarded-proto"] || "http";
+        const host = context.req.headers.host;
+        const baseUrl = `${protocol}://${host}`;
+
+    const response = await fetch(`${baseUrl}/api/key-results/tasks/${keyresultId}`,{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      {
-        id: "column-2",
-        title: "Pendente",
-        tasks: [],
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar dados: ${response.status}`);
+    }
+    
+    const apiData: ApiResponse = await response.json();
+    
+    // Mapear os dados da API para o formato esperado pelo componente
+    const mappedData: KanbanData = {
+      columns: apiData.columns.map(column => ({
+        id: column.column_id.toString(),
+        title: column.column_name,
+        tasks: column.tasks.map((task, index) => ({
+          id: task.id.toString(),
+          title: task.task_name,
+          description: task.description,
+          order: index + 1,
+          priority: task.priority.toString(),
+          dueDate: task.due_date,
+          delayReason: task.delay_reason,
+          tags: task.tags.map(tag => tag.tag_name),
+          users: task.assignees.map(assignee => assignee.email)
+        }))
+      }))
+    };
+
+    return {
+      props: {
+        initialData: mappedData,
+        keyresultId: keyresultId,
+        keyresultName: apiData.key_result_name,
       },
-      {
-        id: "column-3",
-        title: "Em Progresso",
-        tasks: [],
+    };
+  } catch (error) {
+    console.error("Erro ao buscar dados do Kanban:", error);
+    
+    // Em caso de erro, retorna dados vazios
+    return {
+      props: {
+        initialData: {
+          columns: [
+            {
+              id: "column-1",
+              title: "Para Fazer",
+              tasks: [],
+            },
+            {
+              id: "column-2",
+              title: "Pendente",
+              tasks: [],
+            },
+            {
+              id: "column-3",
+              title: "Em Progresso",
+              tasks: [],
+            },
+            {
+              id: "column-4",
+              title: "Finalizado",
+              tasks: [],
+            },
+            {
+              id: "column-5",
+              title: "Fechado",
+              tasks: [],
+            }
+          ]
+        },
+        keyresultId: keyresultId || null,
+        keyresultName: "Resultado não encontrado",
       },
-      {
-        id: "column-4",
-        title: "Finalizado",
-        tasks: [],
-      },
-      {
-        id: "column-5",
-        title: "Fechado",
-        tasks: [],
-      }
-    ]
-  });
+    };
+  }
+};
+
+export default function Kanban({ initialData, keyresultName }: Readonly<KanbanProps>) {
+  
+  const [kanbanData, setKanbanData] = useState<KanbanData>(initialData);
   const [draggedTask, setDraggedTask] = useState<{
     task: Task;
     sourceColumnId: string;
@@ -80,6 +183,7 @@ export default function Kanban() {
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [openDelayedTask, setOpenDelayedTask] = useState<boolean>(false);
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
 
   const onDragStart = (task: Task, columnId: string) => {
     setDraggedTask({ task, sourceColumnId: columnId });
@@ -129,6 +233,10 @@ export default function Kanban() {
     });
   };
   
+  const handleReportBlocked = (taskId: string) => {
+    setCurrentTaskId(taskId);
+    setOpenDelayedTask(true);
+  };
   
   const onDrop = (e: React.DragEvent<HTMLDivElement>, targetColumnId: string) => {
     e.preventDefault();
@@ -305,7 +413,7 @@ export default function Kanban() {
       <div className="flex flex-col w-[100%] pt-[60px] mt-10 mb-10 ml-0 justify-center">
         {/* Cabeçalho do Kanban */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 ml-32">Resultado 1</h1>
+          <h1 className="text-2xl font-bold text-gray-800 ml-32">{keyresultName}</h1>
           <span className="text-xl text-gray-600 font-medium mr-32">2024</span>
         </div>
   
@@ -313,13 +421,14 @@ export default function Kanban() {
         <div className="flex space-x-6 justify-center">
           {kanbanData.columns.map((column: Column, index: number) => (
             <OkrColumns 
-            column={column} 
-            onDragOver={onDragOver} 
-            onDrop={onDrop} 
-            handleCardDragOver={handleCardDragOver} 
-            handleAddTask={handleAddTask} 
-            onDragStart={onDragStart}
-            key={index}
+              column={column} 
+              onDragOver={onDragOver} 
+              onDrop={onDrop} 
+              handleCardDragOver={handleCardDragOver} 
+              handleAddTask={handleAddTask} 
+              onDragStart={onDragStart}
+              onReportBlocked={handleReportBlocked}
+              key={index}
             />
           ))}
         </div>
@@ -329,5 +438,4 @@ export default function Kanban() {
       </div>
     </HeaderLayout>
   );
-  
 }
