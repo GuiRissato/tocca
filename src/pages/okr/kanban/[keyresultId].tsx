@@ -78,16 +78,16 @@ interface KanbanData {
 interface KanbanProps {
   initialData: KanbanData;
   keyresultName: string;
+  keyresultId: string;
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { keyresultId } = context.params || {};
   
   try {
-
     const protocol = context.req.headers["x-forwarded-proto"] || "http";
-        const host = context.req.headers.host;
-        const baseUrl = `${protocol}://${host}`;
+    const host = context.req.headers.host;
+    const baseUrl = `${protocol}://${host}`;
 
     const response = await fetch(`${baseUrl}/api/key-results/tasks/${keyresultId}`,{
       method: 'GET',
@@ -170,7 +170,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 };
 
-export default function Kanban({ initialData, keyresultName }: Readonly<KanbanProps>) {
+export default function Kanban({ initialData, keyresultName, keyresultId }: Readonly<KanbanProps>) {
   
   const [kanbanData, setKanbanData] = useState<KanbanData>(initialData);
   const [draggedTask, setDraggedTask] = useState<{
@@ -184,6 +184,7 @@ export default function Kanban({ initialData, keyresultName }: Readonly<KanbanPr
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [openDelayedTask, setOpenDelayedTask] = useState<boolean>(false);
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+  const [currentColumnId, setCurrentColumnId] = useState<string | null>(null);
 
   const onDragStart = (task: Task, columnId: string) => {
     setDraggedTask({ task, sourceColumnId: columnId });
@@ -194,43 +195,94 @@ export default function Kanban({ initialData, keyresultName }: Readonly<KanbanPr
   };
 
   const handleAddTask = (columnId: string) => {
-    setOpenCreateModal(true)
-
-    setKanbanData((prev) => {
-      // 1) Achar a coluna
-      const colIndex = prev.columns.findIndex((c) => c.id === columnId);
-      if (colIndex === -1) return prev;
+    setCurrentColumnId(columnId);
+    setOpenCreateModal(true);
+  };
   
-      const column = prev.columns[colIndex];
-      const currentTasks = column.tasks;
-  
-      // 2) Definir a ordem como o próximo maior número
-      const maxOrder =
-        currentTasks.length > 0
-          ? Math.max(...currentTasks.map((task) => task.order || 0))
-          : 0;
-  
-      // 3) Criar o objeto newTask
-      const newTaskId = `task-${Math.random().toString(36).substring(2, 10)}`;
-      const newTask: Task = {
-        id: newTaskId,
-        title: `Nova Tarefa`,
-        description: `Descrição da nova tarefa`,
-        order: maxOrder + 1, // Próximo valor na ordem
+  const handleCreateTask = async (taskData: {
+    title: string;
+    description: string;
+    estimatedTime?: string;
+    priority?: string;
+    tags?: string[];
+    responsibles?: string[];
+    columnId: string;
+  }) => {
+    try {
+      // Prepare the data for the API
+      const apiTaskData = {
+        task_name: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority ? parseInt(taskData.priority) : 1,
+        due_date: taskData.estimatedTime || null,
+        column_key_result_id: parseInt(taskData.columnId),
+        key_result_id: parseInt(keyresultId),
+        tags: taskData.tags || [],
+        assignees: taskData.responsibles || []
       };
   
-      // 4) Inserir na coluna
-      const newColumns = [...prev.columns];
-      newColumns[colIndex] = {
-        ...column,
-        tasks: [...column.tasks, newTask],
+      // Make the API call to create the task
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiTaskData),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error creating task: ${response.status}`);
+      }
+  
+      // Refresh the kanban data after successful task creation
+      await refreshKanbanData();
+      
+    } catch (error) {
+      console.error("Error creating task:", error);
+      // Here you could add error handling, like showing a message to the user
+    }
+  };
+  
+  // Function to refresh the kanban data
+  const refreshKanbanData = async () => {
+    try {
+      const response = await fetch(`/api/key-results/tasks/${keyresultId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching data: ${response.status}`);
+      }
+      
+      const apiData: ApiResponse = await response.json();
+      
+      // Map the API data to the expected format
+      const mappedData: KanbanData = {
+        columns: apiData.columns.map(column => ({
+          id: column.column_id.toString(),
+          title: column.column_name,
+          tasks: column.tasks.map((task, index) => ({
+            id: task.id.toString(),
+            title: task.task_name,
+            description: task.description,
+            order: index + 1,
+            priority: task.priority.toString(),
+            dueDate: task.due_date,
+            delayReason: task.delay_reason,
+            tags: task.tags.map(tag => tag.tag_name),
+            users: task.assignees.map(assignee => assignee.email)
+          }))
+        }))
       };
   
-      return {
-        ...prev,
-        columns: newColumns,
-      };
-    });
+      // Update the state with the fresh data
+      setKanbanData(mappedData);
+    } catch (error) {
+      console.error("Error refreshing kanban data:", error);
+    }
   };
   
   const onReportDelayed = (taskId: string) => {
@@ -432,9 +484,16 @@ export default function Kanban({ initialData, keyresultName }: Readonly<KanbanPr
             />
           ))}
         </div>
-        {openCreateModal && <CreateTaskModal open={openCreateModal} onClose={setOpenCreateModal}/>}
+        {openCreateModal && currentColumnId && (
+          <CreateTaskModal 
+            open={openCreateModal} 
+            onClose={setOpenCreateModal} 
+            columnId={currentColumnId}
+            onCreateTask={handleCreateTask}
+          />
+        )}
         {openEditModal && <EditTaskModal open={openEditModal} onClose={setOpenEditModal}/>}
-        {openDelayedTask && <DelayedTaskModal open={openDelayedTask} onClose={setOpenDelayedTask}/>}
+        {openDelayedTask && <DelayedTaskModal open={openDelayedTask} onClose={setOpenDelayedTask} taskId={currentTaskId || undefined}/>}
       </div>
     </HeaderLayout>
   );
