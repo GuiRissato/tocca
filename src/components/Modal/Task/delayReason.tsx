@@ -4,20 +4,30 @@ import Modal from '..';
 interface ModalProps {
   open: boolean;
   onClose: (value: boolean) => void;
-  taskId?: number;
+  taskId: number;
+  taskData: string | undefined;
+  refreshKanban : () => void;
 }
 
 export default function DelayedTaskModal (props: Readonly<ModalProps>) {
-  const [delayReason, setDelayReason] = useState<string>('');
+  const [delayReason, setDelayReason] = useState<string | undefined>(props.taskData);
  
-  const handleSave = () => {
-    // Here you would typically save the delay reason to your backend
-    console.log('Task delay reason saved:', {
-      taskId: props.taskId,
-      delayReason
-    });
-    
-    props.onClose(false);
+  const handleSave = async () => {
+    try {
+      await fetch(`/api/tasks/delay/${props.taskId}`,{
+        method: 'PATCH',
+        headers:{
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({delayReason})
+      })
+      
+      props.onClose(false);
+      props.refreshKanban();
+      
+    } catch (error) {
+      console.log('error updating task', error)
+    }
   };
  
   return (

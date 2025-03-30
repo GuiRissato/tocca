@@ -218,7 +218,7 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [openDelayedTask, setOpenDelayedTask] = useState<boolean>(false);
-  const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
+  const [currentTaskId, setCurrentTaskId] = useState<number>();
   const [currentColumnId, setCurrentColumnId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(initialYear);
   const [years] = useState<number[]>(availableYears);
@@ -241,6 +241,12 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
     setCurrentColumnId(columnId);
     setOpenEditModal(true);
   };
+
+  const handleDelayedTask = (taskId: number, columnId: string) =>{
+    setCurrentTaskId(taskId);
+    setCurrentColumnId(columnId);
+    setOpenDelayedTask(true);
+  }
 
   const updateTaskColumn = async (taskId: string, columnId: string) => {
     try {
@@ -351,8 +357,7 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
       console.error("Error updating task:", error);
     }
   }
-  
-  // Function to refresh the kanban data
+
   const refreshKanbanData = async () => {
     try {
       const response = await fetch(`/api/key-results/tasks/${keyresultId}`, {
@@ -388,16 +393,10 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
         }))
       };
   
-      // Update the state with the fresh data
       setKanbanData(mappedData);
     } catch (error) {
       console.error("Error refreshing kanban data:", error);
     }
-  };
-  
-  const onReportDelayed = (taskId: number) => {
-    setCurrentTaskId(taskId);
-    setOpenDelayedTask(true);
   };
   
   const onDrop = (e: React.DragEvent<HTMLDivElement>, targetColumnId: string) => {
@@ -590,7 +589,7 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
               handleAddTask={handleAddTask}
               handleEditTask={handleEditTask} 
               onDragStart={onDragStart}
-              onReportDelayed={onReportDelayed}
+              handleDelayedTask={handleDelayedTask}
               key={column.id}
             />
           ))}
@@ -622,7 +621,9 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
             );
           })()
         )}
-        {openDelayedTask && <DelayedTaskModal open={openDelayedTask} onClose={setOpenDelayedTask} taskId={currentTaskId || undefined}/>}
+        {(openDelayedTask && currentTaskId && currentColumnId) && (
+          <DelayedTaskModal refreshKanban={refreshKanbanData} open={openDelayedTask} onClose={setOpenDelayedTask} taskId={currentTaskId} taskData={kanbanData.columns.find((c) => c.id === currentColumnId)?.tasks.find((t) => Number(t.id) === currentTaskId)?.delayReason} />
+        )}
       </div>
     </HeaderLayout>
   );

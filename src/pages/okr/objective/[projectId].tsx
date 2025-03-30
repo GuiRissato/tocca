@@ -150,11 +150,11 @@ export default function ObjectivesPage({ initialYear, availableYears, objectives
   return (
     <HeaderLayout>
       {/* Layout Principal com Altura da Tela e Scroll Horizontal */}
-      <div className="container mx-auto pt-[60px] mt-10 mb-10">
-      <header className="ml-6 mb-4">
+      <div className="container mx-[5%] pt-[60px] mt-10 mb-10">
+      <header className="mb-4">
         <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear}/>
       </header>
-      <div className="flex h-full items-center space-x-6 px-6">
+      <div className="flex w-full h-full items-center space-x-6">
             {objectives.map(( objective: Objective ) => {
               return(
               <ObjectiveCard objective={objective as unknown as Objective} key={objective.id} setObjective={setObjectives}/>

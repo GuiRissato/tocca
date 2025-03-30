@@ -30,7 +30,7 @@ interface OkrColumnsProps {
     handleAddTask: (columnId: string) => void;
     handleEditTask: (taskId: number, columnId: string) => void;
     onDragStart: (task: Task, sourceColumn: string) => void;
-    onReportDelayed: (taskId: number) => void;
+    handleDelayedTask: (taskId: number, columnId: string) => void;
 }
 
 export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
@@ -57,8 +57,8 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                             onDragStart={props.onDragStart}
                             columnId={props.column.id}
                             handleCardDragOver={props.handleCardDragOver}
-                            onReportDelayed={props.onReportDelayed} 
                             handleEditTask={props.handleEditTask}
+                            handleDelayedTask={props.handleDelayedTask}
                         />
                     ))}
             </div>

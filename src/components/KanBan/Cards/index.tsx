@@ -22,17 +22,17 @@ interface TaskCardProps {
   onDragStart: (task: Task, sourceColumn: string) => void;
   columnId: string;
   handleCardDragOver: (event: React.DragEvent<HTMLDivElement>, taskId: string) => void;
-  onReportDelayed: (taskId: number) => void;
-  handleEditTask: (taskId: number, columnId: string) => void; // New prop for edit functionality
+  handleEditTask: (taskId: number, columnId: string) => void; 
+  handleDelayedTask: (taskId: number, columnId: string) => void;
 }
 
 export default function TaskCard({ 
   task, 
   onDragStart, 
   columnId, 
-  handleCardDragOver, 
-  onReportDelayed,
-  handleEditTask 
+  handleCardDragOver,
+  handleEditTask,
+  handleDelayedTask
 }: Readonly<TaskCardProps>) {
   // State to track if the card is expanded
   const [isExpanded, setIsExpanded] = useState(false);
@@ -182,7 +182,7 @@ export default function TaskCard({
             <button
               onClick={(e) => {
                 e.stopPropagation(); // Prevent card expansion toggle
-                onReportDelayed(Number(task.id));
+                handleDelayedTask(Number(task.id), columnId);
               }}
               className="bg-red-100 hover:bg-red-200 text-red-700 text-xs px-2 py-1 rounded"
             >
