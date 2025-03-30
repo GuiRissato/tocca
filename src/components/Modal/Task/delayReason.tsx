@@ -4,7 +4,7 @@ import Modal from '..';
 interface ModalProps {
   open: boolean;
   onClose: (value: boolean) => void;
-  taskId?: string;
+  taskId?: number;
 }
 
 export default function DelayedTaskModal (props: Readonly<ModalProps>) {

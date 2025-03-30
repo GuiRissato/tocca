@@ -1,5 +1,6 @@
 import React from 'react';
 import TaskCard from '../Cards';
+import { TaskTag, TaskUser } from '@/components/Modal/Task/edit';
 interface Task {
   id: string;
   title: string;
@@ -8,10 +9,11 @@ interface Task {
   hours?: string;
   priority?: string;
   comments?: string[];
-  tags?: string[];
-  users?: string[];
+  tags?: string[] | TaskTag[];
+  users?: string[]| TaskUser[];
   dueDate?: string;
   delayReason?: string;
+  column_key_result_id: number;
 }
 
 interface Column {
@@ -26,8 +28,9 @@ interface OkrColumnsProps {
     onDrop: (event: React.DragEvent<HTMLDivElement>, columnId: string) => void;
     handleCardDragOver: (event: React.DragEvent<HTMLDivElement>, taskId: string) => void;
     handleAddTask: (columnId: string) => void;
+    handleEditTask: (taskId: number, columnId: string) => void;
     onDragStart: (task: Task, sourceColumn: string) => void;
-    onReportDelayed: (taskId: string) => void;
+    onReportDelayed: (taskId: number) => void;
 }
 
 export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
@@ -54,7 +57,8 @@ export default function OkrColumns(props: Readonly<OkrColumnsProps>) {
                             onDragStart={props.onDragStart}
                             columnId={props.column.id}
                             handleCardDragOver={props.handleCardDragOver}
-                            onReportDelayed={props.onReportDelayed}
+                            onReportDelayed={props.onReportDelayed} 
+                            handleEditTask={props.handleEditTask}
                         />
                     ))}
             </div>

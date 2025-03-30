@@ -4,9 +4,12 @@ import HeaderLayout from "@/components/HeaderLayout";
 import "../../../app/globals.css";
 import OkrColumns from "@/components/KanBan/Columns";
 import CreateTaskModal from "@/components/Modal/Task/create";
-import EditTaskModal from "@/components/Modal/Task/edit";
+import EditTaskModal, { TaskTag, TaskUser } from "@/components/Modal/Task/edit";
 import DelayedTaskModal from "@/components/Modal/Task/delayReason";
 import { GetServerSideProps } from "next";
+import SelectYearButton from "@/components/SelectYearButton";
+import { DecodedToken } from "@/pages/login";
+import { jwtDecode } from "jwt-decode";
 
 interface Tag {
   task_id: number;
@@ -25,7 +28,7 @@ interface Assignee {
 }
 
 interface ApiTask {
-  id: number;
+  id: string;
   key_result_id: number;
   task_name: string;
   description: string;
@@ -55,14 +58,15 @@ interface Task {
   id: string;
   title: string;
   description: string;
+  estimatedTime?: string;
   order: number;
-  hours?: string;
   priority?: string;
   comments?: string[];
-  tags?: string[];
-  users?: string[];
+  tags?: string[] | TaskTag[];
+  users?: string[] | TaskUser[];
   dueDate?: string;
   delayReason?: string;
+  column_key_result_id: number;
 }
 
 interface Column {
@@ -76,6 +80,8 @@ interface KanbanData {
 }
 
 interface KanbanProps {
+  initialYear: number;
+  availableYears: number[];
   initialData: KanbanData;
   keyresultName: string;
   keyresultId: string;
@@ -83,6 +89,15 @@ interface KanbanProps {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { keyresultId } = context.params || {};
+
+   let userJwt: DecodedToken | null = null;
+        if (context.req.cookies.userJWT) {
+          try {
+            userJwt = jwtDecode(context.req.cookies.userJWT);
+          } catch (error) {
+            console.error("Falha ao decodificar o JWT:", error);
+          }
+        }
   
   try {
     const protocol = context.req.headers["x-forwarded-proto"] || "http";
@@ -95,6 +110,21 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         'Content-Type': 'application/json',
       },
     });
+
+    const yearsResponse = await fetch(
+      `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
+      {
+        method: "GET",
+      }
+    );
+
+    if (!yearsResponse.ok) {
+      throw new Error(`Erro na requisição de anos: ${yearsResponse.status} - ${yearsResponse.statusText}`);
+    }
+    const yearsData = await yearsResponse.json();
+    const availableYears: number[] = Array.isArray(yearsData) ? yearsData : [];
+    const initialYear = availableYears.length > 0 ? availableYears[0] : new Date().getFullYear();
+
     
     if (!response.ok) {
       throw new Error(`Erro ao buscar dados: ${response.status}`);
@@ -116,13 +146,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           dueDate: task.due_date,
           delayReason: task.delay_reason,
           tags: task.tags.map(tag => tag.tag_name),
-          users: task.assignees.map(assignee => assignee.email)
+          users: task.assignees.map(assignee => assignee.email),
+          column_key_result_id: column.column_id
         }))
       }))
     };
 
     return {
       props: {
+        initialYear,
+        availableYears,
         initialData: mappedData,
         keyresultId: keyresultId,
         keyresultName: apiData.key_result_name,
@@ -134,6 +167,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     // Em caso de erro, retorna dados vazios
     return {
       props: {
+        initialYear: new Date().getFullYear(),
+        availableYears: [],
         initialData: {
           columns: [
             {
@@ -170,7 +205,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 };
 
-export default function Kanban({ initialData, keyresultName, keyresultId }: Readonly<KanbanProps>) {
+export default function Kanban({ initialYear, availableYears, initialData, keyresultName, keyresultId }: Readonly<KanbanProps>) {
   
   const [kanbanData, setKanbanData] = useState<KanbanData>(initialData);
   const [draggedTask, setDraggedTask] = useState<{
@@ -183,8 +218,10 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [openDelayedTask, setOpenDelayedTask] = useState<boolean>(false);
-  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+  const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
   const [currentColumnId, setCurrentColumnId] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(initialYear);
+  const [years] = useState<number[]>(availableYears);
 
   const onDragStart = (task: Task, columnId: string) => {
     setDraggedTask({ task, sourceColumnId: columnId });
@@ -197,6 +234,35 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
   const handleAddTask = (columnId: string) => {
     setCurrentColumnId(columnId);
     setOpenCreateModal(true);
+  };
+
+  const handleEditTask = (taskId: number, columnId: string) => {
+    setCurrentTaskId(taskId);
+    setCurrentColumnId(columnId);
+    setOpenEditModal(true);
+  };
+
+  const updateTaskColumn = async (taskId: string, columnId: string) => {
+    try {
+      const response = await fetch(`/api/tasks/move/${taskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          column_key_result_id: parseInt(columnId)
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error updating task column: ${response.status}`);
+      }
+  
+      return true;
+    } catch (error) {
+      console.error("Error updating task column:", error);
+      return false;
+    }
   };
   
   const handleCreateTask = async (taskData: {
@@ -215,7 +281,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
         description: taskData.description,
         priority: taskData.priority ? parseInt(taskData.priority) : 1,
         due_date: taskData.estimatedTime || null,
-        column_key_result_id: parseInt(taskData.columnId),
+        column_key_result_id: parseInt(taskData.columnId || "0"),
         key_result_id: parseInt(keyresultId),
         tags: taskData.tags || [],
         assignees: taskData.responsibles || []
@@ -242,6 +308,49 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
       // Here you could add error handling, like showing a message to the user
     }
   };
+
+  const handleUpdateTask = async (taskData: {
+    id: string;
+    title: string;
+    description: string;
+    estimatedTime?: string;
+    priority?: string;
+    tags?: number[];
+    responsibles?: number[];
+    columnId: number;
+  }) => {
+    try {
+
+      const apiTaskData = {
+        id: taskData.id,
+        task_name: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority ? parseInt(taskData.priority) : 1,
+        due_date: taskData.estimatedTime || null,
+        column_key_result_id: taskData.columnId,
+        key_result_id: parseInt(keyresultId),
+        tags: taskData.tags || [],
+        users: taskData.responsibles || []
+      }
+
+      const response = await fetch(`/api/tasks/${apiTaskData.id}`,{
+        method: 'PATCH',
+        headers:{
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiTaskData)
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error updating task: ${response.status}`);
+      }
+
+      await refreshKanbanData();
+
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  }
   
   // Function to refresh the kanban data
   const refreshKanbanData = async () => {
@@ -273,7 +382,8 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
             dueDate: task.due_date,
             delayReason: task.delay_reason,
             tags: task.tags.map(tag => tag.tag_name),
-            users: task.assignees.map(assignee => assignee.email)
+            users: task.assignees.map(assignee => assignee.email),
+            column_key_result_id: column.column_id
           }))
         }))
       };
@@ -285,7 +395,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
     }
   };
   
-  const onReportDelayed = (taskId: string) => {
+  const onReportDelayed = (taskId: number) => {
     setCurrentTaskId(taskId);
     setOpenDelayedTask(true);
   };
@@ -303,13 +413,12 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
     // 2) Caso contrário, é movimento para outra coluna
     else {
       moveToAnotherColumn(sourceColumnId, targetColumnId, task.id, hoveredTaskId);
+      updateTaskColumn(task.id, targetColumnId);
     }
-  
     setDraggedTask(null);
     setHoveredTaskId(null);
     setInsertPosition(null);
   };
-  
 
   function reorderInSameColumn(
     columnId: string,
@@ -367,7 +476,6 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
       };
     });
   }
-  
   
   function moveToAnotherColumn(
     sourceColumnId: string, 
@@ -465,8 +573,10 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
       <div className="flex flex-col w-[100%] pt-[60px] mt-10 mb-10 ml-0 justify-center">
         {/* Cabeçalho do Kanban */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 ml-32">{keyresultName}</h1>
-          <span className="text-xl text-gray-600 font-medium mr-32">2024</span>
+          <h1 className="text-2xl font-bold text-gray-800 ml-[2%]">{keyresultName}</h1>
+          <div className="mr-[2%]">
+            <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear}/>
+          </div>
         </div>
   
         {/* Kanban */}
@@ -477,14 +587,15 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
               onDragOver={onDragOver} 
               onDrop={onDrop} 
               handleCardDragOver={handleCardDragOver} 
-              handleAddTask={handleAddTask} 
+              handleAddTask={handleAddTask}
+              handleEditTask={handleEditTask} 
               onDragStart={onDragStart}
               onReportDelayed={onReportDelayed}
               key={column.id}
             />
           ))}
         </div>
-        {openCreateModal && currentColumnId && (
+        {(openCreateModal && currentColumnId) && (
           <CreateTaskModal 
             open={openCreateModal} 
             onClose={setOpenCreateModal} 
@@ -492,7 +603,25 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
             onCreateTask={handleCreateTask}
           />
         )}
-        {openEditModal && <EditTaskModal open={openEditModal} onClose={setOpenEditModal}/>}
+        {(openEditModal && currentTaskId && currentColumnId) && (
+        (() => {
+          const taskData = kanbanData.columns
+            .find((c) => c.id === currentColumnId)
+            ?.tasks.find((t) => Number(t.id) === currentTaskId);
+          if (!taskData) {
+            return null;
+          }
+            return (
+              <EditTaskModal 
+                open={openEditModal}
+                onClose={setOpenEditModal}
+                taskData={taskData}
+                currentTaskId={currentTaskId}
+                onUpdateTask={handleUpdateTask}
+              />
+            );
+          })()
+        )}
         {openDelayedTask && <DelayedTaskModal open={openDelayedTask} onClose={setOpenDelayedTask} taskId={currentTaskId || undefined}/>}
       </div>
     </HeaderLayout>

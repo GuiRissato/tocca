@@ -1,5 +1,6 @@
-
 import React, { useState } from 'react';
+import { Pencil } from 'lucide-react'; // Import the pencil icon or use any other icon library
+import { TaskTag, TaskUser } from '@/components/Modal/Task/edit';
 
 interface Task {
   id: string;
@@ -9,10 +10,11 @@ interface Task {
   hours?: string;
   priority?: string;
   comments?: string[];
-  tags?: string[];
-  users?: string[];
+  tags?: string[] | TaskTag[];
+  users?: string[] | TaskUser[];
   dueDate?: string;
   delayReason?: string;
+  column_key_result_id: number;
 }
 
 interface TaskCardProps {
@@ -20,7 +22,8 @@ interface TaskCardProps {
   onDragStart: (task: Task, sourceColumn: string) => void;
   columnId: string;
   handleCardDragOver: (event: React.DragEvent<HTMLDivElement>, taskId: string) => void;
-  onReportDelayed: (taskId: string) => void;
+  onReportDelayed: (taskId: number) => void;
+  handleEditTask: (taskId: number, columnId: string) => void; // New prop for edit functionality
 }
 
 export default function TaskCard({ 
@@ -28,7 +31,8 @@ export default function TaskCard({
   onDragStart, 
   columnId, 
   handleCardDragOver, 
-  onReportDelayed 
+  onReportDelayed,
+  handleEditTask 
 }: Readonly<TaskCardProps>) {
   // State to track if the card is expanded
   const [isExpanded, setIsExpanded] = useState(false);
@@ -53,6 +57,12 @@ export default function TaskCard({
     onDragStart(task, columnId);
   };
 
+  // Handle edit button click
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card expansion
+    handleEditTask(Number(task.id), columnId);
+  };
+
   return (
     <div
       key={task.id}
@@ -68,16 +78,28 @@ export default function TaskCard({
         <h3 className="text-md font-medium text-gray-800 mb-2 flex-grow">
           {task.title}
         </h3>
-        <div className="text-gray-500 ml-2">
-          {isExpanded ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          )}
+        <div className="flex items-center space-x-2">
+          {/* Edit button */}
+          <button 
+            onClick={handleEditClick}
+            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            title="Editar tarefa"
+          >
+            <Pencil size={16} />
+          </button>
+          
+          {/* Expand/collapse icon */}
+          <div className="text-gray-500">
+            {isExpanded ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            )}
+          </div>
         </div>
       </div>
 
@@ -90,7 +112,7 @@ export default function TaskCard({
                 key={index} 
                 className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
               >
-                {user}
+                {String(user)}
               </span>
             ))}
           </div>
@@ -106,7 +128,7 @@ export default function TaskCard({
                 key={index} 
                 className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full"
               >
-                {tag}
+                {String(tag)}
               </span>
             ))}
           </div>
@@ -145,18 +167,22 @@ export default function TaskCard({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
               <span className="font-medium">Prioridade:</span>
-              <span className="ml-1">{task.priority}</span>
+              <span className="ml-1">
+                {task.priority === '1' ? 'Baixa' : 
+                 task.priority === '2' ? 'Média' : 
+                 task.priority === '3' ? 'Alta' : task.priority}
+              </span>
             </div>
           )}
           
           <div className="border-b border-gray-300 my-2"></div>
           
-          {/* Report Blocked Button */}
+          {/* Action Buttons */}
           <div className="mt-3 flex justify-end">
             <button
               onClick={(e) => {
                 e.stopPropagation(); // Prevent card expansion toggle
-                onReportDelayed(task.id);
+                onReportDelayed(Number(task.id));
               }}
               className="bg-red-100 hover:bg-red-200 text-red-700 text-xs px-2 py-1 rounded"
             >

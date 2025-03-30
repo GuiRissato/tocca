@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 });
             }
             for (const assigneeId of assignees) {
-                await toccaAPI.post('/task-assingees',{
+                await toccaAPI.post('/task-assingnees',{
                     task_id: response.data.id,
                     user_id: assigneeId
                 });
