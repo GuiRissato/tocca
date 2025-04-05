@@ -310,9 +310,8 @@ export default function TaskPerformance() {
   };
 
   return (
-    <div>
-      <h2>Relatório de Desempenho</h2>
-      <button onClick={gerarPDF}>Gerar PDF</button>
-    </div>
+    <button onClick={gerarPDF} className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
+      <h2 className="font-semibold text-lg mb-2">Desempenho das Tarefas</h2>
+    </button>
   );
 }
