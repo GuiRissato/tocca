@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import logoTocca from '../../../assets/logoTocca.png';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (pdfMake as any).addVirtualFileSystem(pdfFonts);
@@ -33,6 +36,11 @@ interface TaskPerformanceData {
   projectName: string;
   performanceByObjective: PerformanceByObjective[];
   delayedTasks: DelayedTasks;
+}
+
+interface TaskPerformanceProps {
+  selectedOkr: number;
+  selectedYear: number;
 }
 
 function generateCircularChart(
@@ -124,35 +132,87 @@ const generateProgressBar = (percentage: number, color: string) => {
   ];
 };
 
-export default function TaskPerformance() {
-  const taskPerformanceData: TaskPerformanceData = {
-    projectId: 1,
-    projectName: 'Project 1',
-    performanceByObjective: [
-      {
-        objectiveName: 'Objective 1',
-        columns: [
-          { columnName: 'Column A', percentage: 80, color: '#2F80ED' },
-          { columnName: 'Column B', percentage: 50, color: '#F2994A' },
-        ],
-      },
-      {
-        objectiveName: 'Objective 2',
-        columns: [
-          { columnName: 'Column A', percentage: 30, color: '#F2C94C' },
-          { columnName: 'Column B', percentage: 60, color: '#81C784' },
-          { columnName: 'Column C', percentage: 90, color: '#E57373' },
-        ],
-      },
-    ],
-    delayedTasks: {
-      totalDelayedTasks: 2,
-      delayedTasksByPriority: { high: 1, medium: 1, low: 0 },
-      delayReasons: [
-        { reason: 'Bloqueio de recursos', count: 1 },
-        { reason: 'Dependência de terceiros', count: 1 },
-      ],
-    },
+export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<TaskPerformanceProps>) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  
+  const user = useSelector((state: RootState) => state.user);
+
+  // Converter a imagem do logo para base64
+  React.useEffect(() => {
+    convertImageToBase64();
+  }, []);
+
+  // Função para converter a imagem importada para base64
+  const convertImageToBase64 = () => {
+    try {
+      // Para TypeScript, precisamos garantir que o tipo seja tratado corretamente
+      const imageUrl = typeof logoTocca === 'string' ? logoTocca : logoTocca.toString();
+      
+      // Se a imagem já for uma string base64 (como em algumas configurações de webpack)
+      if (imageUrl.startsWith('data:image')) {
+        setLogoBase64(imageUrl);
+        return;
+      }
+      
+      // Se for um caminho de arquivo, precisamos criar um elemento de imagem
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const dataURL = canvas.toDataURL('image/png');
+          setLogoBase64(dataURL);
+        }
+      };
+      img.src = imageUrl;
+    } catch (err) {
+      console.error("Erro ao converter a imagem para base64:", err);
+    }
+  };
+
+  // Função para buscar os dados da API
+  const fetchTaskPerformanceData = async (): Promise<TaskPerformanceData | null> => {
+    if (!selectedOkr || !user.companyId || !selectedYear) {
+      setError("Por favor, selecione um OKR e um ano para gerar o relatório.");
+      return null;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/reports/taskPerformance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: selectedOkr,
+          year: selectedYear
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}`);
+      }
+
+      const data: TaskPerformanceData = await response.json();
+      console.log('Dados de desempenho de tarefas:', data);
+      return data;
+    } catch (err) {
+      console.error("Erro ao buscar dados de desempenho de tarefas:", err);
+      setError(err instanceof Error ? err.message : "Erro ao buscar dados de desempenho de tarefas");
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Exemplo de docDefinition adaptado para o novo formato de dados
@@ -161,13 +221,10 @@ export default function TaskPerformance() {
       pageSize: 'A4',
       pageMargins: [40, 60, 40, 60],
       content: [
-        // Título principal
-        {
-          text: 'TOCCA',
-          style: 'header',
-          alignment: 'center',
-          color: '#E65100',
-        },
+        // Logo em vez de texto
+        logoBase64 
+          ? { image: logoBase64, width: 150, alignment: 'center', margin: [0, 0, 0, 10] }
+          : { text: 'TOCCA', style: 'header', alignment: 'center', color: '#E65100' },
         {
           text: `Desempenho das tarefas - ${data.projectName}`,
           style: 'subheader',
@@ -197,7 +254,7 @@ export default function TaskPerformance() {
                       ...obj.columns.flatMap((col) => {
                         return [
                           { text: col.columnName, style: 'regularText' },
-                          ...generateProgressBar(col.percentage, col.color, 250),
+                          ...generateProgressBar(col.percentage, col.color),
                         ];
                       }),
                     ],
@@ -304,14 +361,42 @@ export default function TaskPerformance() {
     };
   };
 
-  const gerarPDF = () => {
-    const docDefinition = generateDocDefinition(taskPerformanceData);
-    pdfMake.createPdf(docDefinition).download('relatorio-performance.pdf');
+  const gerarPDF = async () => {
+    try {
+      setLoading(true);
+      
+      // Buscar dados da API
+      const taskPerformanceData = await fetchTaskPerformanceData();
+      
+      if (!taskPerformanceData) {
+        alert(error || "Não foi possível gerar o PDF. Verifique se um OKR está selecionado.");
+        return;
+      }
+      
+      // Gerar e baixar o PDF
+      const docDefinition = generateDocDefinition(taskPerformanceData);
+      pdfMake.createPdf(docDefinition).download(`Desempenho_Tarefas_${taskPerformanceData.projectName}_${selectedYear}.pdf`);
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+      alert("Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <button onClick={gerarPDF} className="bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px]">
-      <h2 className="font-semibold text-lg mb-2">Desempenho das Tarefas</h2>
+    <button 
+      onClick={gerarPDF} 
+      className={`bg-[#D8D8D8] text-center px-6 py-4 rounded-xl w-[430px] hover:bg-gray-400 transition h-[70px] relative ${loading ? 'cursor-wait' : ''}`}
+      disabled={loading}
+    >
+      {loading ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+        </div>
+      ) : (
+        <h2 className="font-semibold text-lg mb-2">Desempenho das Tarefas</h2>
+      )}
     </button>
   );
 }

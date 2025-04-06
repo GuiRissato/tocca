@@ -5,11 +5,12 @@ import axios from 'axios';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if(req.method === 'POST'){
         try {
-            const { username, password } = req.body;
-            const response = await toccaAPI.post('/users/login', {
-                username,
-                password,
+            const { projectId, year } = req.body;
+            const response = await toccaAPI.post('/files/taskPerformance', {
+                projectId,
+                year,
               });
+              console.log(response.data)
               return res.status(200).json(response.data);
         } catch (error: unknown) {            
             if (axios.isAxiosError(error)) {

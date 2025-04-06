@@ -4,19 +4,33 @@ import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import logoTocca from '../../../assets/logoTocca.png';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (pdfMake as any).addVirtualFileSystem(pdfFonts);
 
-interface Objective {
+interface ApiObjective {
   objectiveName: string;
   progress: number;
+}
+
+interface ApiKeyResult {
+  columnName: string;
+  percentage: number;
+}
+
+interface ApiOkrData {
+  projectId: number;
+  projectName: string;
+  objectives: ApiObjective[];
+  keyResults: ApiKeyResult[];
+}
+
+interface Objective extends ApiObjective {
   color: string;
 }
 
-interface KeyResult {
-  columnName: string;
-  percentage: number;
+interface KeyResult extends ApiKeyResult {
   color: string;
 }
 
@@ -27,7 +41,6 @@ interface OkrData {
   keyResults: KeyResult[];
 }
 
-// Sample colors for objectives and key results
 const objectiveColors = ['#2F80ED', '#F2994A', '#F2C94C', '#6FCF97', '#9B51E0'];
 const keyResultColors = ['#BBDEFB', '#2F80ED', '#90CAF9', '#81C784', '#E57373'];
 
@@ -46,7 +59,7 @@ const generateProgressBar = (percentage: number, color: string) => [
         type: 'rect',
         x: 0,
         y: 0,
-        w: (percentage / 100) * 200,
+        w: (percentage / 100) * 500,
         h: 10,
         color: color,
       },
@@ -64,13 +77,49 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
   const [loading, setLoading] = useState(false);
   const [okrData, setOkrData] = useState<OkrData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
   
   const user = useSelector((state: RootState) => state.user);
+
+  useEffect(()=>{
+    convertImageToBase64();
+  },
+  [])
 
   useEffect(() => {
     setOkrData(null);
     setError(null);
   }, [selectedOkr, selectedYear]);
+
+  const convertImageToBase64 = () => {
+    try {
+      const imageUrl = typeof logoTocca === 'string' ? logoTocca : logoTocca.toString();
+      
+      if (imageUrl.startsWith('data:image')) {
+        setLogoBase64(imageUrl);
+        return;
+      }
+      
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const dataURL = canvas.toDataURL('image/png');
+          setLogoBase64(dataURL);
+        }
+      }; 
+      console.log('img',img.src)
+      img.src = imageUrl;
+    } catch (err) {
+      console.error("Erro ao converter a imagem para base64:", err);
+    }
+  };
 
   const fetchOkrData = async () => {
     if (!selectedOkr || !user.companyId || !selectedYear) {
@@ -82,7 +131,6 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
     setError(null);
 
     try {
-      
       const progressPDFDataResponse = await fetch(`/api/reports/progress`,{
         method: 'POST',
         headers: {
@@ -94,9 +142,23 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
         })
       });
 
-      const data = await progressPDFDataResponse.json()
-      console.log(data)
-      setOkrData(data)
+      const apiData: ApiOkrData = await progressPDFDataResponse.json();
+
+      const processedData: OkrData = {
+        projectId: apiData.projectId,
+        projectName: apiData.projectName,
+        objectives: apiData.objectives.map((obj, index) => ({
+          ...obj,
+          color: objectiveColors[index % objectiveColors.length]
+        })),
+        keyResults: apiData.keyResults.map((kr, index) => ({
+          ...kr,
+          color: keyResultColors[index % keyResultColors.length]
+        }))
+      };
+      
+      setOkrData(processedData);
+      return processedData;
     } catch (err) {
       console.error("Erro ao buscar dados do OKR:", err);
       setError(err instanceof Error ? err.message : "Erro ao buscar dados do OKR");
@@ -107,7 +169,7 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
   };
 
   const gerarPDF = async () => {
-    // If we don't have data yet, fetch it
+    // Se ainda não temos dados, buscá-los
     const data = okrData || await fetchOkrData();
     
     if (!data) {
@@ -119,7 +181,10 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
       pageSize: 'A4',
       pageMargins: [40, 60, 40, 40],
       content: [
-        { text: 'TOCCA', style: 'header', alignment: 'center', color: '#E65100' },
+        // Usar a imagem convertida para base64
+        logoBase64 
+          ? { image: logoBase64, width: 150, alignment: 'center', margin: [0, 0, 0, 10] }
+          : { text: 'TOCCA', style: 'header', alignment: 'center', color: '#E65100' },
         { text: `Progresso do OKR ${data.projectName}`, margin: [0, 20, 0, 20], alignment: 'center' },
         { text: 'Objetivos', style: 'subheader', margin: [0, 10, 0, 5], alignment: 'center'},
         ...(data.objectives.length > 0 
