@@ -114,7 +114,7 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
           setLogoBase64(dataURL);
         }
       }; 
-      console.log('img',img.src)
+
       img.src = imageUrl;
     } catch (err) {
       console.error("Erro ao converter a imagem para base64:", err);

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -13,7 +14,8 @@ import logoTocca from '../../../assets/logoTocca.png';
 interface ColumnData {
   columnName: string;
   percentage: number;
-  color: string;
+  // color antes não vem do back, mas vamos adicionar pelo front:
+  color?: string; 
 }
 
 interface PerformanceByObjective {
@@ -22,6 +24,7 @@ interface PerformanceByObjective {
 }
 
 interface DelayedTasks {
+  totalTasks: number;
   totalDelayedTasks: number;
   delayedTasksByPriority: {
     high: number;
@@ -41,6 +44,23 @@ interface TaskPerformanceData {
 interface TaskPerformanceProps {
   selectedOkr: number;
   selectedYear: number;
+}
+
+// Função para atribuir cor às colunas que não tenham cor
+function assignColorsToColumns(objectives: PerformanceByObjective[]): PerformanceByObjective[] {
+  // Ajuste essa paleta de cores conforme seu gosto
+  const colorPalette = ['#F44336', '#2196F3', '#FFC107', '#4CAF50', '#9C27B0'];
+
+  return objectives.map((obj) => {
+    const columnsWithColor = obj.columns.map((col, index) => {
+      // Se a coluna já tiver cor, não sobrescreve; senão, atribui da paleta
+      if (!col.color) {
+        return { ...col, color: colorPalette[index % colorPalette.length] };
+      }
+      return col;
+    });
+    return { ...obj, columns: columnsWithColor };
+  });
 }
 
 function generateCircularChart(
@@ -93,7 +113,7 @@ function generateCircularChart(
         text: `${percentage}%`,
         alignment: 'center',
         // Tenta jogar o texto sobre o círculo
-        margin: [(radius /2) - 8, -(radius * 2) + 22, 0, 0],
+        margin: [(radius / 2) - 8, -(radius * 2) + 22, 0, 0],
         bold: true,
       },
     ],
@@ -118,7 +138,7 @@ const generateProgressBar = (percentage: number, color: string) => {
           type: 'rect',
           x: 0,
           y: 0,
-          w: (percentage / 100) * 200,
+          w: (percentage / 100) * 500,
           h: 8,
           color: color,
         },
@@ -140,7 +160,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
   const user = useSelector((state: RootState) => state.user);
 
   // Converter a imagem do logo para base64
-  React.useEffect(() => {
+  useEffect(() => {
     convertImageToBase64();
   }, []);
 
@@ -177,7 +197,6 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
     }
   };
 
-  // Função para buscar os dados da API
   const fetchTaskPerformanceData = async (): Promise<TaskPerformanceData | null> => {
     if (!selectedOkr || !user.companyId || !selectedYear) {
       setError("Por favor, selecione um OKR e um ano para gerar o relatório.");
@@ -215,8 +234,11 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
     }
   };
 
-  // Exemplo de docDefinition adaptado para o novo formato de dados
+  // Exemplo de docDefinition adaptado para o novo formato de dados, já com cor atribuída
   const generateDocDefinition = (data: TaskPerformanceData): TDocumentDefinitions => {
+    // Primeiro atribuir cores às colunas, se necessário
+    const updatedObjectives = assignColorsToColumns(data.performanceByObjective);
+
     return {
       pageSize: 'A4',
       pageMargins: [40, 60, 40, 60],
@@ -233,7 +255,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
         },
   
         // Mapeia cada objetivo
-        ...data.performanceByObjective.map((obj) => {
+        ...updatedObjectives.map((obj) => {
           return {
             style: 'objectiveCard',
             table: {
@@ -243,18 +265,11 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
                   {
                     stack: [
                       { text: `Objetivo: ${obj.objectiveName}`, style: 'objectiveTitle' },
-                      { text: 'Resultado', style: 'resultTitle', margin: [0, 5, 0, 5] },
-                      // Exemplo de alguma frase
-                      {
-                        text: 'Tempo médio para conclusão das tarefas:',
-                        style: 'regularText',
-                        margin: [0, 0, 0, 10],
-                      },
-                      // Agora as barras
+                      { text: 'Resultados Chaves por coluna:',  style: 'resultTitle', margin: [0, 5, 0, 5] },
                       ...obj.columns.flatMap((col) => {
                         return [
                           { text: col.columnName, style: 'regularText' },
-                          ...generateProgressBar(col.percentage, col.color),
+                          ...generateProgressBar(col.percentage, col.color || '#F44336'),
                         ];
                       }),
                     ],
@@ -277,7 +292,6 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
           };
         }),
   
-        // Agora a parte das tarefas atrasadas
         {
           text: 'Tarefas em Atraso',
           style: 'subheader',
@@ -285,19 +299,17 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
         },
         {
           columns: [
-            // Coluna do gráfico circular
             {
               width: 'auto',
               stack: [
                 generateCircularChart(
-                  (data.delayedTasks.totalDelayedTasks / 10) * 100,
+                  (data.delayedTasks.totalDelayedTasks / data.delayedTasks.totalTasks),
                   30,
                   '#F44336',
                   '#E0E0E0'
                 ),
               ],
             },
-            // Coluna do texto
             {
               width: '*',
               stack: [
@@ -321,7 +333,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
                 },
                 {
                   ul: data.delayedTasks.delayReasons.map(
-                    (reasonObj) => `${reasonObj.reason} - ${reasonObj.count} ocorrências`
+                    (reasonObj) => `${reasonObj.reason}`
                   ),
                   margin: [10, 0, 0, 0],
                 },
