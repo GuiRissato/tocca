@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if(req.method === 'POST'){
         try {
             const { projectId, year } = req.body;
-            const response = await toccaAPI.post('/files/okrProgress', {
+            const response = await toccaAPI.post('/files/deadlines', {
                 projectId,
                 year,
               });

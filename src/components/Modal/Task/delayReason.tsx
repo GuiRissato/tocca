@@ -26,7 +26,7 @@ export default function DelayedTaskModal (props: Readonly<ModalProps>) {
       props.refreshKanban();
       
     } catch (error) {
-      console.log('error updating task', error)
+      console.error('error updating task', error)
     }
   };
  

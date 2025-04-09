@@ -10,7 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 projectId,
                 year,
               });
-              console.log(response.data)
               return res.status(200).json(response.data);
         } catch (error: unknown) {            
             if (axios.isAxiosError(error)) {

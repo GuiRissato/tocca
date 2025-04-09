@@ -223,7 +223,6 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
       }
 
       const data: TaskPerformanceData = await response.json();
-      console.log('Dados de desempenho de tarefas:', data);
       return data;
     } catch (err) {
       console.error("Erro ao buscar dados de desempenho de tarefas:", err);

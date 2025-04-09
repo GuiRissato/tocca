@@ -157,7 +157,7 @@ export default function ReportPage({initialYear, availableYears}: Readonly<Repor
 
           <TaskPerformance selectedOkr={Number(selectedOkr)} selectedYear={selectedYear}/>
 
-          <Deadlines/>
+          <Deadlines selectedOkr={Number(selectedOkr)} selectedYear={selectedYear}/>
         </div>
       </div>
     </HeaderLayout>
