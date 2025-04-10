@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import HeaderLayout from '@/components/HeaderLayout';
 import '../../app/globals.css'
 import OKRGrid from "../../components/OKRGrid";

@@ -80,8 +80,6 @@ interface KanbanData {
 }
 
 interface KanbanProps {
-  initialYear: number;
-  availableYears: number[];
   initialData: KanbanData;
   keyresultName: string;
   keyresultId: string;
@@ -89,15 +87,6 @@ interface KanbanProps {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { keyresultId } = context.params || {};
-
-   let userJwt: DecodedToken | null = null;
-        if (context.req.cookies.userJWT) {
-          try {
-            userJwt = jwtDecode(context.req.cookies.userJWT);
-          } catch (error) {
-            console.error("Falha ao decodificar o JWT:", error);
-          }
-        }
   
   try {
     const protocol = context.req.headers["x-forwarded-proto"] || "http";
@@ -110,21 +99,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         'Content-Type': 'application/json',
       },
     });
-
-    const yearsResponse = await fetch(
-      `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
-      {
-        method: "GET",
-      }
-    );
-
-    if (!yearsResponse.ok) {
-      throw new Error(`Erro na requisição de anos: ${yearsResponse.status} - ${yearsResponse.statusText}`);
-    }
-    const yearsData = await yearsResponse.json();
-    const availableYears: number[] = Array.isArray(yearsData) ? yearsData : [];
-    const initialYear = availableYears.length > 0 ? availableYears[0] : new Date().getFullYear();
-
     
     if (!response.ok) {
       throw new Error(`Erro ao buscar dados: ${response.status}`);
@@ -154,8 +128,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     return {
       props: {
-        initialYear,
-        availableYears,
         initialData: mappedData,
         keyresultId: keyresultId,
         keyresultName: apiData.key_result_name,
@@ -163,12 +135,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   } catch (error) {
     console.error("Erro ao buscar dados do Kanban:", error);
-    
-    // Em caso de erro, retorna dados vazios
+
     return {
       props: {
-        initialYear: new Date().getFullYear(),
-        availableYears: [],
         initialData: {
           columns: [
             {
@@ -205,7 +174,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 };
 
-export default function Kanban({ initialYear, availableYears, initialData, keyresultName, keyresultId }: Readonly<KanbanProps>) {
+export default function Kanban({ initialData, keyresultName, keyresultId }: Readonly<KanbanProps>) {
   
   const [kanbanData, setKanbanData] = useState<KanbanData>(initialData);
   const [draggedTask, setDraggedTask] = useState<{
@@ -220,8 +189,6 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
   const [openDelayedTask, setOpenDelayedTask] = useState<boolean>(false);
   const [currentTaskId, setCurrentTaskId] = useState<number>();
   const [currentColumnId, setCurrentColumnId] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(initialYear);
-  const [years] = useState<number[]>(availableYears);
 
   const onDragStart = (task: Task, columnId: string) => {
     setDraggedTask({ task, sourceColumnId: columnId });
@@ -573,9 +540,6 @@ export default function Kanban({ initialYear, availableYears, initialData, keyre
         {/* Cabeçalho do Kanban */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800 ml-[2%]">{keyresultName}</h1>
-          <div className="mr-[2%]">
-            <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear}/>
-          </div>
         </div>
   
         {/* Kanban */}

@@ -9,7 +9,7 @@ interface SelectYearButtonProps {
 }
 export default function SelectYearButton(props: Readonly<SelectYearButtonProps>) {
 
-      const [years, setYears] = useState<number[]>(props.years);
+      const [years] = useState<number[]>(props.years);
       
     return (
         <div className="relative w-64">

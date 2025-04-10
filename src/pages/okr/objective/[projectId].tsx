@@ -1,13 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import "../../../app/globals.css";
 import ObjectiveCard from "@/components/ObjectiveCard";
 import ObjectiveModal from "@/components/Modal/Objective/create";
-import SelectYearButton from "@/components/SelectYearButton";
 import { wrapper } from "@/store";
 import { GetServerSidePropsResult } from "next";
-import { DecodedToken } from "@/pages/login";
-import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/router";
 
 export interface KeyResult {
@@ -34,41 +32,17 @@ export interface Objective {
   key_results: KeyResult[];
 }
 export interface OKRPageProps {
-  initialYear: number;
-  availableYears: number[];
   objectives: Objective[];
 }
 
 export const getServerSideProps = wrapper.getServerSideProps(
   () =>
     async (context): Promise<GetServerSidePropsResult<OKRPageProps>> => {
-      let userJwt: DecodedToken | null = null;
-      if (context.req.cookies.userJWT) {
-        try {
-          userJwt = jwtDecode(context.req.cookies.userJWT);
-        } catch (error) {
-          console.error("Falha ao decodificar o JWT:", error);
-        }
-      }
 
       try {
         const protocol = context.req.headers["x-forwarded-proto"] || "http";
         const host = context.req.headers.host;
         const baseUrl = `${protocol}://${host}`;
-
-        const yearsResponse = await fetch(
-          `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
-          {
-            method: "GET",
-          }
-        );
-
-        if (!yearsResponse.ok) {
-          throw new Error(`Erro na requisição de anos: ${yearsResponse.status} - ${yearsResponse.statusText}`);
-        }
-        const yearsData = await yearsResponse.json();
-        const availableYears: number[] = Array.isArray(yearsData) ? yearsData : [];
-        const initialYear = availableYears.length > 0 ? availableYears[0] : new Date().getFullYear();
 
         const { projectId } = context.params || {};
         if (!projectId) {
@@ -88,8 +62,6 @@ export const getServerSideProps = wrapper.getServerSideProps(
 
         return {
           props: {
-            initialYear,
-            availableYears,
             objectives: objectivesData,
           },
         };
@@ -98,8 +70,6 @@ export const getServerSideProps = wrapper.getServerSideProps(
         console.error("Erro na requisição:", error);
         return {
           props: {
-            initialYear: new Date().getFullYear(),
-            availableYears: [],
             objectives: [],
           },
         };
@@ -108,9 +78,7 @@ export const getServerSideProps = wrapper.getServerSideProps(
 );
 
 
-export default function ObjectivesPage({ initialYear, availableYears, objectives: initialObjectives }: Readonly<OKRPageProps>) {
-  const [selectedYear, setSelectedYear] = useState<number>(initialYear);
-  const [years] = useState<number[]>(availableYears);
+export default function ObjectivesPage({ objectives: initialObjectives }: Readonly<OKRPageProps>) {
   const [openModal, setOpenModal] = useState(false);
   
   const [objectives, setObjectives] = useState<Objective[]>(initialObjectives);
@@ -151,9 +119,6 @@ export default function ObjectivesPage({ initialYear, availableYears, objectives
     <HeaderLayout>
       {/* Layout Principal com Altura da Tela e Scroll Horizontal */}
       <div className="container mx-[5%] pt-[60px] mt-10 mb-10">
-      <header className="mb-4">
-        <SelectYearButton years={years} setSelectedYear={setSelectedYear} selectedYear={selectedYear}/>
-      </header>
       <div className="flex w-full h-full items-center space-x-6">
             {objectives.map(( objective: Objective ) => {
               return(

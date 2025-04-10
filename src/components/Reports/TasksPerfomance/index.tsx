@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
@@ -43,7 +43,6 @@ interface TaskPerformanceData {
 
 interface TaskPerformanceProps {
   selectedOkr: number;
-  selectedYear: number;
 }
 
 // Função para atribuir cor às colunas que não tenham cor
@@ -152,7 +151,7 @@ const generateProgressBar = (percentage: number, color: string) => {
   ];
 };
 
-export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<TaskPerformanceProps>) {
+export default function TaskPerformance({ selectedOkr }: Readonly<TaskPerformanceProps>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
@@ -198,7 +197,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
   };
 
   const fetchTaskPerformanceData = async (): Promise<TaskPerformanceData | null> => {
-    if (!selectedOkr || !user.companyId || !selectedYear) {
+    if (!selectedOkr || !user.companyId) {
       setError("Por favor, selecione um OKR e um ano para gerar o relatório.");
       return null;
     }
@@ -213,8 +212,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectId: selectedOkr,
-          year: selectedYear
+          projectId: selectedOkr
         })
       });
 
@@ -268,7 +266,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
                       ...obj.columns.flatMap((col) => {
                         return [
                           { text: col.columnName, style: 'regularText' },
-                          ...generateProgressBar(col.percentage, col.color || '#F44336'),
+                          ...generateProgressBar(col.percentage, col.color ?? '#F44336'),
                         ];
                       }),
                     ],
@@ -289,7 +287,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
             },
             margin: [0, 0, 0, 20],
           };
-        }),
+        }) as any,
   
         {
           text: 'Tarefas em Atraso',
@@ -386,7 +384,7 @@ export default function TaskPerformance({ selectedOkr, selectedYear }: Readonly<
       
       // Gerar e baixar o PDF
       const docDefinition = generateDocDefinition(taskPerformanceData);
-      pdfMake.createPdf(docDefinition).download(`Desempenho_Tarefas_${taskPerformanceData.projectName}_${selectedYear}.pdf`);
+      pdfMake.createPdf(docDefinition).download(`Desempenho_Tarefas_${taskPerformanceData.projectName}_${new Date().getFullYear()}.pdf`);
     } catch (err) {
       console.error("Erro ao gerar PDF:", err);
       alert("Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.");

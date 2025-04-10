@@ -153,11 +153,11 @@ export default function ReportPage({initialYear, availableYears}: Readonly<Repor
         </div>
 
         <div className="flex flex-1 justify-center items-center gap-8 h-[calc(100vh-300px)] ">
-         <OKRProgress selectedOkr={Number(selectedOkr)} selectedYear={selectedYear}/>
+         <OKRProgress selectedOkr={Number(selectedOkr)}/>
 
-          <TaskPerformance selectedOkr={Number(selectedOkr)} selectedYear={selectedYear}/>
+          <TaskPerformance selectedOkr={Number(selectedOkr)}/>
 
-          <Deadlines selectedOkr={Number(selectedOkr)} selectedYear={selectedYear}/>
+          <Deadlines selectedOkr={Number(selectedOkr)}/>
         </div>
       </div>
     </HeaderLayout>

@@ -5,10 +5,9 @@ import axios from 'axios';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if(req.method === 'POST'){
         try {
-            const { projectId, year } = req.body;
+            const { projectId } = req.body;
             const response = await toccaAPI.post('/files/deadlines', {
-                projectId,
-                year,
+                projectId
               });
               return res.status(200).json(response.data);
         } catch (error: unknown) {            

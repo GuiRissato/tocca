@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
@@ -70,10 +71,9 @@ const generateProgressBar = (percentage: number, color: string) => [
 
 interface OkrProgressProps {
   selectedOkr: number;
-  selectedYear: number;
 }
 
-export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrProgressProps>) {
+export default function OKRProgress({selectedOkr}: Readonly<OkrProgressProps>) {
   const [loading, setLoading] = useState(false);
   const [okrData, setOkrData] = useState<OkrData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +89,7 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
   useEffect(() => {
     setOkrData(null);
     setError(null);
-  }, [selectedOkr, selectedYear]);
+  }, [selectedOkr]);
 
   const convertImageToBase64 = () => {
     try {
@@ -122,7 +122,7 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
   };
 
   const fetchOkrData = async () => {
-    if (!selectedOkr || !user.companyId || !selectedYear) {
+    if (!selectedOkr || !user.companyId ) {
       setError("Por favor, selecione um OKR e um ano para gerar o relatório.");
       return null;
     }
@@ -137,8 +137,7 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectId: selectedOkr,
-          year: selectedYear
+          projectId: selectedOkr
         })
       });
 
@@ -201,7 +200,7 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
               ...generateProgressBar(kr.percentage, kr.color),
             ])
           : [{ text: 'Nenhum resultado chave encontrado', italics: true, alignment: 'center' }]
-        ),
+        )as any,
       ],
       styles: {
         header: { fontSize: 22, bold: true },
@@ -209,7 +208,7 @@ export default function OKRProgress({selectedOkr, selectedYear}: Readonly<OkrPro
       },
     };
 
-    pdfMake.createPdf(docDefinition).download(`OKR_${data.projectName}_${selectedYear}.pdf`);
+    pdfMake.createPdf(docDefinition).download(`OKR_${data.projectName}_${new Date().getFullYear()}.pdf`);
   };
 
   return (

@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
@@ -29,7 +29,6 @@ interface DeadLines {
 
 interface DeadlinesProps {
   selectedOkr: number;
-  selectedYear: number;
 }
 
 const generateCircularChart = (percentage: number, radius = 40, color = '#4CAF50', backgroundColor = '#E0E0E0') => {
@@ -57,7 +56,7 @@ const generateCircularChart = (percentage: number, radius = 40, color = '#4CAF50
   };
 };
 
-export default function Deadlines({ selectedOkr, selectedYear }: Readonly<DeadlinesProps>) {
+export default function Deadlines({ selectedOkr }: Readonly<DeadlinesProps>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
@@ -98,7 +97,7 @@ export default function Deadlines({ selectedOkr, selectedYear }: Readonly<Deadli
   };
 
   const fetchDeadlinesData = async (): Promise<DeadLines | null> => {
-    if (!selectedOkr || !user.companyId || !selectedYear) {
+    if (!selectedOkr || !user.companyId ) {
       setError("Por favor, selecione um OKR e um ano para gerar o relatório.");
       return null;
     }
@@ -113,8 +112,7 @@ export default function Deadlines({ selectedOkr, selectedYear }: Readonly<Deadli
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectId: selectedOkr,
-          year: selectedYear
+          projectId: selectedOkr
         })
       });
 
@@ -199,7 +197,7 @@ export default function Deadlines({ selectedOkr, selectedYear }: Readonly<Deadli
                       ],
                     },
                     layout: {
-                      fillColor: (rowIndex) => (rowIndex % 2 === 0 ? '#FFFFFF' : '#F9F9F9'),
+                      fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#FFFFFF' : '#F9F9F9'),
                       hLineWidth: () => 0.5,
                       vLineWidth: () => 0.5,
                       hLineColor: () => '#DDDDDD',
@@ -213,7 +211,7 @@ export default function Deadlines({ selectedOkr, selectedYear }: Readonly<Deadli
             ],
             style: 'card',
             margin: [0, 10],
-          })),
+          }))as any,
       ],
       styles: {
         header: { fontSize: 22, bold: true, alignment: 'center' },
@@ -244,7 +242,7 @@ export default function Deadlines({ selectedOkr, selectedYear }: Readonly<Deadli
       
       // Gerar e baixar o PDF
       const docDefinition = generateDocDefinition(deadlinesData);
-      pdfMake.createPdf(docDefinition).download(`Prazos_Datas_${deadlinesData.projectName}_${selectedYear}.pdf`);
+      pdfMake.createPdf(docDefinition).download(`Prazos_Datas_${deadlinesData.projectName}_${new Date().getFullYear()}.pdf`);
     } catch (err) {
       console.error("Erro ao gerar PDF:", err);
       alert("Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.");
