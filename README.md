@@ -26,7 +26,7 @@ Before setting up the Tocca frontend, ensure you have the following installed:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/tocca.git
+git clone https://github.com/GuiRissato/tocca.git
 cd tocca
 ```
 
@@ -46,22 +46,8 @@ The application requires environment variables to be set up correctly. Create a 
 
 ```
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3001/api  # Replace with your Tocca API URL
-NEXT_PUBLIC_API_TIMEOUT=30000  # API request timeout in milliseconds
-
-# Authentication
-NEXT_PUBLIC_JWT_SECRET=your-jwt-secret  # JWT secret for token validation
-NEXT_PUBLIC_TOKEN_EXPIRATION=8h  # Token expiration time
-
-# Application Settings
-NEXT_PUBLIC_APP_URL=http://localhost:3000  # Your frontend application URL
+API_URL="http://127.0.0.1:7560/"
 ```
-
-### Important Notes:
-
-- Make sure the `NEXT_PUBLIC_API_URL` points to your running instance of the Tocca API
-- For production, update the URLs to your production domains
-- The JWT secret should match the one used in your Tocca API configuration
 
 ## Running the Application
 
@@ -102,7 +88,7 @@ The frontend application requires the Tocca API backend to be running. Follow th
 1. Clone the Tocca API repository:
 
 ```bash
-git clone https://github.com/your-username/tocca-api.git
+git clone https://github.com/GuiRissato/tocca-api.git
 cd tocca-api
 ```
 
@@ -131,22 +117,13 @@ Make sure your backend API is running and accessible at the URL specified in you
 
 ### Common Issues
 
-#### PDF Generation Errors
-
-If you encounter errors related to PDF generation:
-
-- Ensure that PDF generation only occurs on the client side
-- Use the `dynamic` import with `{ ssr: false }` for PDF-related components
-- Check browser console for specific errors
-
 #### API Connection Issues
 
 If the frontend cannot connect to the API:
 
 1. Verify that the Tocca API is running
-2. Check that the `NEXT_PUBLIC_API_URL` in your `.env` file is correct
-3. Look for CORS issues in the browser console
-4. Ensure network connectivity between frontend and backend
+2. Check that the `API_URL` in your `.env` file is correct
+3. Ensure network connectivity between frontend and backend
 
 #### Build Errors
 
