@@ -49,6 +49,7 @@ export const getServerSideProps = wrapper.getServerSideProps(
       }
       try {
         const baseUrl = process.env.SITE_URL ?? `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
+        console.log("process.env.SITE_URL:", process.env.SITE_URL);
         const response = await fetch(
           `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
           {
