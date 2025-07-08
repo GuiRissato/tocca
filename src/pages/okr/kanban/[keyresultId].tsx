@@ -215,7 +215,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
 
   const updateTaskColumn = async (taskId: string, columnId: string) => {
     try {
-      const response = await fetch(`/api/tasks/move/${taskId}`, {
+      const response = await fetch(`${process.env.SITE_URL}/api/tasks/move/${taskId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
       };
   
       // Make the API call to create the task
-      const response = await fetch('/api/tasks', {
+      const response = await fetch(`${process.env.SITE_URL}/api/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -304,7 +304,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
         users: taskData.responsibles || []
       }
 
-      const response = await fetch(`/api/tasks/${apiTaskData.id}`,{
+      const response = await fetch(`${process.env.SITE_URL}/api/tasks/${apiTaskData.id}`,{
         method: 'PATCH',
         headers:{
           'Content-Type': 'application/json',
@@ -325,7 +325,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
 
   const refreshKanbanData = async () => {
     try {
-      const response = await fetch(`/api/key-results/tasks/${keyresultId}`, {
+      const response = await fetch(`${process.env.SITE_URL}/api/key-results/tasks/${keyresultId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

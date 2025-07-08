@@ -79,7 +79,7 @@ export default function EditObjectiveModal(props: Readonly<ModalProps>) {
     setError("");
 
     try {
-      const response = await fetch(`/api/objectives/${props.objective.id}`, {
+      const response = await fetch(`${process.env.SITE_URL}/api/objectives/${props.objective.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

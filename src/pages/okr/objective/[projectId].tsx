@@ -87,7 +87,7 @@ export default function ObjectivesPage({ objectives: initialObjectives }: Readon
     if (!projectId) return;
 
     try {
-      const response = await fetch(`/api/objectives/keyresults/${projectId}`, {
+      const response = await fetch(`${process.env.SITE_URL}/api/objectives/keyresults/${projectId}`, {
         method: "GET",
       });
 

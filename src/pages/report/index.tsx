@@ -100,7 +100,7 @@ export default function ReportPage({initialYear, availableYears}: Readonly<Repor
   const fetchAllOkrsNames = async (companyId: number, year: number) =>{
     try {
       
-      const response = await fetch(`/api/okr/names/${companyId}/${year}`,{
+      const response = await fetch(`${process.env.SITE_URL}/api/okr/names/${companyId}/${year}`,{
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

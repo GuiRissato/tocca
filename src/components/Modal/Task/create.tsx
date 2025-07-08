@@ -49,7 +49,7 @@ export default function CreateTaskModal(props: Readonly<ModalProps>) {
     const [tags, setTags] = useState<Tag[]>([]);
 
     const fetchTags = async () => {
-      const response = await fetch(`/api/tags/${user.companyId}`, {
+      const response = await fetch(`${process.env.SITE_URL}/api/tags/${user.companyId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export default function CreateTaskModal(props: Readonly<ModalProps>) {
 
     const fetchUsers = async () => {
 
-      const response = await fetch(`/api/user/${user.companyId}`,{
+      const response = await fetch(`${process.env.SITE_URL}/api/user/${user.companyId}`,{
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
