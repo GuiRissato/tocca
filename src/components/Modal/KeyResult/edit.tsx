@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Modal from "..";
-import { KeyResult } from "@/pages/okr/objective/[projectId]";
+import { KeyResult } from "../../../pages/okr/objective/[projectId]";
 
 interface ModalProps {
     open: boolean;

@@ -1,4 +1,4 @@
-import { OkrProject } from "@/pages/okr";
+import { OkrProject } from "../../pages/okr";
 import {useRouter} from "next/router";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";

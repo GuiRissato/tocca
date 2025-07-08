@@ -8,7 +8,7 @@ import EditTaskModal, { TaskTag, TaskUser } from "@/components/Modal/Task/edit";
 import DelayedTaskModal from "@/components/Modal/Task/delayReason";
 import { GetServerSideProps } from "next";
 import SelectYearButton from "@/components/SelectYearButton";
-import { DecodedToken } from "@/pages/login";
+import { DecodedToken } from "../../login";
 import { jwtDecode } from "jwt-decode";
 
 interface Tag {

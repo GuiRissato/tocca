@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CreateKeyResultModal from "../Modal/KeyResult/create";
 import EditKeyResultModal from "../Modal/KeyResult/edit";
-import { Objective, KeyResult } from "@/pages/okr/objective/[projectId]";
+import { Objective, KeyResult } from "../../pages/okr/objective/[projectId]";
 import { useRouter } from "next/router";
 import EditObjectiveModal from "../Modal/Objective/edit";
 

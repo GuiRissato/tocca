@@ -3,7 +3,7 @@ import OKRCard from "../OKRCard";
 import ProjectOKRCreateModal from "../Modal/OkrProject/create"; // Ajuste o caminho se necessário
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { fetchOkrs, OkrProject } from "@/pages/okr";
+import { fetchOkrs, OkrProject } from "../../pages/okr";
 
   interface OKRGridProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -100,6 +100,8 @@ export async function fetchOkrs(user: UserState, setOkrs: React.Dispatch<React.S
         },
       });
 
+      console.log("Response from /api/okr:", response);
+
       if (!response.ok) {
         throw new Error(`Erro ao buscar OKRs: ${response.status} - ${response.statusText}`);
       }

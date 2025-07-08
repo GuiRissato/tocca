@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Objective } from "@/pages/okr/objective/[projectId]";
+import { Objective } from "../../../pages/okr/objective/[projectId]";
 import Modal from "..";
 
 interface ModalProps {
