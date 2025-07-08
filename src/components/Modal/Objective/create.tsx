@@ -43,7 +43,7 @@ export default function ObjectiveModal(props: Readonly<ModalProps>) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${process.env.SITE_URL}/api/objectives`, {
+      const response = await fetch(`/api/objectives`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

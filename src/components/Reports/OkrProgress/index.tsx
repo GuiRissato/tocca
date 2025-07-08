@@ -131,7 +131,7 @@ export default function OKRProgress({selectedOkr}: Readonly<OkrProgressProps>) {
     setError(null);
 
     try {
-      const progressPDFDataResponse = await fetch(`${process.env.SITE_URL}/api/reports/progress`,{
+      const progressPDFDataResponse = await fetch(`/api/reports/progress`,{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

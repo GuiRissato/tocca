@@ -206,7 +206,7 @@ export default function TaskPerformance({ selectedOkr }: Readonly<TaskPerformanc
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.SITE_URL}/api/reports/taskPerformance`, {
+      const response = await fetch(`/api/reports/taskPerformance`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

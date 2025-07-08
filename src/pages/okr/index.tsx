@@ -93,7 +93,7 @@ export async function fetchOkrs(user: UserState, setOkrs: React.Dispatch<React.S
   try {
     
     if (user?.companyId != null) {
-      const response = await fetch(`${process.env.SITE_URL}/api/okr/${user.companyId}`, {
+      const response = await fetch(`/api/okr/${user.companyId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

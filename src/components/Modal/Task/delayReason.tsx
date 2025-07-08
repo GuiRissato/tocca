@@ -14,7 +14,7 @@ export default function DelayedTaskModal (props: Readonly<ModalProps>) {
  
   const handleSave = async () => {
     try {
-      await fetch(`${process.env.SITE_URL}/api/tasks/delay/${props.taskId}`,{
+      await fetch(`/api/tasks/delay/${props.taskId}`,{
         method: 'PATCH',
         headers:{
           'Content-Type': 'application/json',

@@ -85,7 +85,7 @@ export default function EditKeyResultModal(props: Readonly<ModalProps>) {
     setError("");
 
     try {
-      const response = await fetch(`${process.env.SITE_URL}/api/key-results/${props.keyResult.id}`, {
+      const response = await fetch(`/api/key-results/${props.keyResult.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

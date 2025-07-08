@@ -19,7 +19,7 @@ export default function OKRGrid({ okrs, setOkrs }: Readonly<OKRGridProps>) {
 
   const handleCreateOKR = async (name: string, description: string) => {
     try {
-      const response = await fetch(`${process.env.SITE_URL}/api/okr/create`, {
+      const response = await fetch(`/api/okr/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

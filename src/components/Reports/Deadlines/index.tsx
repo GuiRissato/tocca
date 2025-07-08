@@ -106,7 +106,7 @@ export default function Deadlines({ selectedOkr }: Readonly<DeadlinesProps>) {
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.SITE_URL}/api/reports/deadlines`, {
+      const response = await fetch(`/api/reports/deadlines`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
