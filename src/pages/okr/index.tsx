@@ -57,11 +57,15 @@ export const getServerSideProps = wrapper.getServerSideProps(
           }
         );
 
+        console.log("req", response)
+
         if (!response.ok) {
           throw new Error(`Erro: ${response.status} - ${response.statusText}`);
         }
 
         const data = await response.json();
+
+        console.log("Dados recebidos:", data);
 
         let availableYears: number[] = [];
         if (Array.isArray(data)) {
