@@ -38,7 +38,7 @@ export const getServerSideProps = wrapper.getServerSideProps(
         userJwt = parsedCookies;
       }
       try {
-        const baseUrl = `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
+        const baseUrl = process.env.SITE_URL ?? `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
         const response = await fetch(
           `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
           {

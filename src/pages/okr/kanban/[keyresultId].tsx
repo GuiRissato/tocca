@@ -89,9 +89,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const { keyresultId } = context.params || {};
   
   try {
-    const protocol = context.req.headers["x-forwarded-proto"] || "http";
-    const host = context.req.headers.host;
-    const baseUrl = `${protocol}://${host}`;
+    const baseUrl = process.env.SITE_URL ?? `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
 
     const response = await fetch(`${baseUrl}/api/key-results/tasks/${keyresultId}`,{
       method: 'GET',

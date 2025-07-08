@@ -40,9 +40,7 @@ export const getServerSideProps = wrapper.getServerSideProps(
     async (context): Promise<GetServerSidePropsResult<OKRPageProps>> => {
 
       try {
-        const protocol = context.req.headers["x-forwarded-proto"] || "http";
-        const host = context.req.headers.host;
-        const baseUrl = `${protocol}://${host}`;
+        const baseUrl = process.env.SITE_URL ?? `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
 
         const { projectId } = context.params || {};
         if (!projectId) {
