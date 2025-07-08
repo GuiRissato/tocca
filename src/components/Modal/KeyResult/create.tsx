@@ -72,7 +72,7 @@ export default function CreateKeyResultModal(props: Readonly<ModalProps>) {
     setError("");
 
     try {
-      const response = await fetch('/api/key-results', { 
+      const response = await fetch(`${process.env.SITE_URL}/api/key-results`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
