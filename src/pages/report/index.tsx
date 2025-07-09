@@ -1,4 +1,3 @@
-import "../../app/globals.css";
 import React, { useEffect, useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
 import SelectYearButton from "@/components/SelectYearButton";
@@ -38,7 +37,9 @@ export const getServerSideProps = wrapper.getServerSideProps(
         userJwt = parsedCookies;
       }
       try {
-        const baseUrl = process.env.SITE_URL ?? `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
+         const protocol = context.req.headers['x-forwarded-proto'] || 'http';
+        const host = context.req.headers.host;
+        const baseUrl = `${protocol}://${host}`;
         const response = await fetch(
           `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
           {

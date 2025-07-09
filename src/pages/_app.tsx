@@ -1,6 +1,6 @@
-import '../../src/app/globals.css'
+import '../../src/styles/globals.css'
 import type { AppProps } from 'next/app';
-import { wrapper } from '../store';
+import { wrapper } from '@/store';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

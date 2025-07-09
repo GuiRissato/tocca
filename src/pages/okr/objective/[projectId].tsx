@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
-import "../../../app/globals.css";
 import ObjectiveCard from "@/components/ObjectiveCard";
 import ObjectiveModal from "@/components/Modal/Objective/create";
 import { wrapper } from "@/store";
@@ -33,6 +32,7 @@ export interface Objective {
 }
 export interface OKRPageProps {
   objectives: Objective[];
+  error?: string;
 }
 
 export const getServerSideProps = wrapper.getServerSideProps(
@@ -40,7 +40,9 @@ export const getServerSideProps = wrapper.getServerSideProps(
     async (context): Promise<GetServerSidePropsResult<OKRPageProps>> => {
 
       try {
-        const baseUrl = process.env.SITE_URL ?? `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
+        const protocol = context.req.headers['x-forwarded-proto'] || 'http';
+        const host = context.req.headers.host;
+        const baseUrl = `${protocol}://${host}`;
 
         const { projectId } = context.params || {};
         if (!projectId) {
@@ -63,12 +65,13 @@ export const getServerSideProps = wrapper.getServerSideProps(
             objectives: objectivesData,
           },
         };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+
+      } catch (error: unknown) {
         console.error("Erro na requisição:", error);
         return {
           props: {
             objectives: [],
+            error: error instanceof Error ? error.message : "Erro ao carregar os objetivos.",
           },
         };
       }
@@ -83,18 +86,19 @@ export default function ObjectivesPage({ objectives: initialObjectives }: Readon
   const router = useRouter();
   const { projectId } = router.query;
 
+  
   const fetchObjectives = async () => {
     if (!projectId) return;
-
+    
     try {
       const response = await fetch(`/api/objectives/keyresults/${projectId}`, {
         method: "GET",
       });
-
+      
       if (!response.ok) {
         throw new Error(`Erro na requisição de objetivos: ${response.status}`);
       }
-
+      
       const data = await response.json();
       setObjectives(data);
     } catch (error) {
@@ -102,16 +106,18 @@ export default function ObjectivesPage({ objectives: initialObjectives }: Readon
       alert("Ocorreu um erro ao buscar os objetivos. Por favor, tente novamente.");
     }
   };
-
+  
   const addObjective = () => {
     setOpenModal(true);
   };
-
+  
   useEffect(() => {
-    if(!openModal){
-      fetchObjectives()
+    if (projectId && !openModal) {
+      fetchObjectives();
     }
-  }, [openModal]);
+  }, [projectId, openModal]);
+  
+  if (!projectId || typeof projectId !== "string") return;
 
   return (
     <HeaderLayout>
@@ -120,7 +126,7 @@ export default function ObjectivesPage({ objectives: initialObjectives }: Readon
       <div className="flex w-full h-full items-center space-x-6">
             {objectives.map(( objective: Objective ) => {
               return(
-              <ObjectiveCard objective={objective as unknown as Objective} key={objective.id} setObjective={setObjectives}/>
+              <ObjectiveCard objective={objective as Objective} key={objective.id} setObjective={setObjectives}/>
             )})}
 
             <div

@@ -1,15 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import HeaderLayout from "@/components/HeaderLayout";
-import "../../../app/globals.css";
 import OkrColumns from "@/components/KanBan/Columns";
 import CreateTaskModal from "@/components/Modal/Task/create";
 import EditTaskModal, { TaskTag, TaskUser } from "@/components/Modal/Task/edit";
 import DelayedTaskModal from "@/components/Modal/Task/delayReason";
 import { GetServerSideProps } from "next";
-import SelectYearButton from "@/components/SelectYearButton";
-import { DecodedToken } from "../../login";
-import { jwtDecode } from "jwt-decode";
 
 interface Tag {
   task_id: number;
@@ -89,7 +85,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const { keyresultId } = context.params || {};
   
   try {
-    const baseUrl = process.env.SITE_URL ?? `${context.req.headers['x-forwarded-proto']}://${context.req.headers.host}`;
+    const protocol = context.req.headers['x-forwarded-proto'] || 'http';
+        const host = context.req.headers.host;
+        const baseUrl = `${protocol}://${host}`;
 
     const response = await fetch(`${baseUrl}/api/key-results/tasks/${keyresultId}`,{
       method: 'GET',
@@ -257,8 +255,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
         tags: taskData.tags || [],
         assignees: taskData.responsibles || []
       };
-  
-      // Make the API call to create the task
+
       const response = await fetch(`/api/tasks`, {
         method: 'POST',
         headers: {
@@ -337,8 +334,7 @@ export default function Kanban({ initialData, keyresultName, keyresultId }: Read
       }
       
       const apiData: ApiResponse = await response.json();
-      
-      // Map the API data to the expected format
+
       const mappedData: KanbanData = {
         columns: apiData.columns.map(column => ({
           id: column.column_id.toString(),
