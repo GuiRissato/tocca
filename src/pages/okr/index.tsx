@@ -121,14 +121,13 @@ export default function OKRPage({
   const [selectedYear, setSelectedYear] = useState<number>(
     initialYear ?? new Date().getFullYear()
   );
-  const [years] = useState<number[]>(availableYears ?? []);
   const [okrs, setOkrs] = useState<OkrProject[]>([]);
 
   useEffect(() => {
     if (user?.companyId) {
       fetchOkrs(user, setOkrs);
     }
-  }, [user?.companyId, years]);
+  }, [user?.companyId]);
 
   if (error) {
     return (
@@ -147,7 +146,7 @@ export default function OKRPage({
       <div className="container mx-auto pt-[60px] mt-10 mb-10">
         <header className="mb-4">
           <SelectYearButton
-            years={years}
+            years={availableYears ?? []}
             setSelectedYear={setSelectedYear}
             selectedYear={selectedYear}
           />
