@@ -29,6 +29,20 @@ export interface OkrProject {
   keyResultsProgress: number;
 }
 
+// Função para construir URL base mais robusta
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getBaseUrl(req: any): string {
+  if (process.env.NODE_ENV === 'production') {
+    // Em produção, use a URL do Vercel
+    return `https://${req.headers.host}`;
+  }
+  
+  // Em desenvolvimento
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const host = req.headers.host;
+  return `${protocol}://${host}`;
+}
+
 export const getServerSideProps = wrapper.getServerSideProps(
   () =>
     async (
@@ -42,28 +56,64 @@ export const getServerSideProps = wrapper.getServerSideProps(
     > => {
       let userJwt: DecodedToken | null = null;
 
-      if (context.req.cookies.userJWT) {
-        const parsedCookies: DecodedToken = jwtDecode(context.req.cookies.userJWT);
-        userJwt = parsedCookies;
+      // Verificar se existe JWT e se é válido
+      if (!context.req.cookies.userJWT) {
+        return {
+          redirect: {
+            destination: '/login',
+            permanent: false,
+          },
+        };
       }
 
       try {
-        const protocol = context.req.headers['x-forwarded-proto'] || 'http';
-        const host = context.req.headers.host;
-        const baseUrl = `${protocol}://${host}`;
+        const parsedCookies: DecodedToken = jwtDecode(context.req.cookies.userJWT);
+        userJwt = parsedCookies;
+        
+        // Verificar se o token não expirou
+        if (userJwt.exp && userJwt.exp * 1000 < Date.now()) {
+          return {
+            redirect: {
+              destination: '/login',
+              permanent: false,
+            },
+          };
+        }
+      } catch (error) {
+        console.error('Erro ao decodificar JWT:', error);
+        return {
+          redirect: {
+            destination: '/login',
+            permanent: false,
+          },
+        };
+      }
+
+      try {
+        const baseUrl = getBaseUrl(context.req);
+        
+        console.log('Base URL:', baseUrl); // Debug
+        console.log('Company ID:', userJwt?.user.companyId); // Debug
 
         const response = await fetch(
           `${baseUrl}/api/okr/years?companyId=${userJwt?.user.companyId}`,
           {
             method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cookie': context.req.headers.cookie || '', // Passar cookies para a API
+            },
           }
         );
+
+        console.log('Response status:', response.status); // Debug
 
         if (!response.ok) {
           throw new Error(`Erro: ${response.status} - ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('API Response:', data); // Debug
 
         const availableYears = Array.isArray(data) ? data : [];
         const initialYear = availableYears.length > 0 ? availableYears[0] : new Date().getFullYear();
@@ -91,6 +141,8 @@ export async function fetchOkrs(
 ) {
   try {
     if (user?.companyId != null) {
+      console.log('Fetching OKRs for company:', user.companyId); // Debug
+      
       const response = await fetch(`/api/okr/${user.companyId}`, {
         method: 'GET',
         headers: {
@@ -98,12 +150,14 @@ export async function fetchOkrs(
         },
       });
 
+      console.log('OKRs fetch response status:', response.status); // Debug
+
       if (!response.ok) {
         throw new Error(`Erro ao buscar OKRs: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Response from /api/okr:', data); // Corrigido: aguarda o JSON antes do log
+      console.log('Response from /api/okr:', data);
       setOkrs(data);
     }
   } catch (error) {

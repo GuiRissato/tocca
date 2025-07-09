@@ -7,6 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             const { companyId } = req.query;
             const response = await toccaAPI.get(`/okr-projects/${companyId}`);
+            console.log("Data from api", response.data);
               return res.status(200).json(response.data);
         } catch (error: unknown) {            
             if (axios.isAxiosError(error)) {
